@@ -6,31 +6,59 @@
 package com.apu.converterxmldb.persist;
 
 import com.apu.converterxmldb.entity.Library;
+import com.apu.converterxmldb.exception.PersistException;
+import com.apu.converterxmldb.exception.RepositoryException;
+import com.apu.converterxmldb.persist.repository.LibraryRepository;
+import com.apu.converterxmldb.persist.repository.LibraryRepositoryJDBC;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author apu
  */
 public class DBPersistController implements PersistController {
+    
+    private final LibraryRepository libraryRepository;
 
-    @Override
-    public boolean save(Library library) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public DBPersistController() {
+        this.libraryRepository = new LibraryRepositoryJDBC();
     }
 
     @Override
-    public Library read() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public boolean save(Library library) throws PersistException {
+        try {
+            return libraryRepository.save(library);
+        } catch (RepositoryException ex) {
+            throw new PersistException(ex);
+        }
     }
 
     @Override
-    public boolean update(Library library) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public Library read() throws PersistException {
+        try {
+            return libraryRepository.read();
+        } catch (RepositoryException ex) {
+            throw new PersistException(ex);
+        }
     }
 
     @Override
-    public boolean delete(Library library) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public boolean update(Library library) throws PersistException {
+        try {
+            return libraryRepository.update(library);
+        } catch (RepositoryException ex) {
+            throw new PersistException(ex);
+        }
+    }
+
+    @Override
+    public boolean delete(Library library) throws PersistException {
+        try {
+            return libraryRepository.delete(library);
+        } catch (RepositoryException ex) {
+            throw new PersistException(ex);
+        }
     }
     
 }

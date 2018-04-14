@@ -6,6 +6,7 @@
 package com.apu.converterxmldb.persist;
 
 import com.apu.converterxmldb.entity.Library;
+import com.apu.converterxmldb.exception.PersistException;
 
 /**
  *
@@ -13,12 +14,12 @@ import com.apu.converterxmldb.entity.Library;
  */
 public interface PersistController {
     
-    boolean save(Library library);
+    boolean save(Library library) throws PersistException;
     
-    Library read();
+    Library read() throws PersistException;
     
-    boolean update(Library library);
+    boolean update(Library library) throws PersistException;
     
-    boolean delete(Library library);
+    boolean delete(Library library) throws PersistException;
     
 }

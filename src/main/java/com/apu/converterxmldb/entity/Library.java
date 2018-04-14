@@ -28,8 +28,8 @@ public class Library {
         return books;
     }
 
-    @XmlElement
-    @XmlElementWrapper
+    @XmlElementWrapper(name = "Books")
+    @XmlElement(name = "Book")    
     public void setBooks(List<Book> books) {
         this.books = books;
     }
@@ -37,6 +37,12 @@ public class Library {
     public void addBook(Book book) {
         if(!books.contains(book))
             books.add(book);
+    }
+    
+    public void addBooks(List<Book> books) {
+        for(Book book:books) {
+            addBook(book);
+        }
     }
     
 }

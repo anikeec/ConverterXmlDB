@@ -50,8 +50,8 @@ public class Book {
         return authors;
     }
     
-    @XmlElement
-    @XmlElementWrapper
+    @XmlElementWrapper(name = "Authors")
+    @XmlElement(name = "Author")    
     public void setAuthors(List<Author> authors) {
         this.authors = authors;
     }

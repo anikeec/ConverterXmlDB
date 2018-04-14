@@ -10,6 +10,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
@@ -18,12 +19,32 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public class Book {
     
+    private int id;
+    private String title;
     private List<Author> authors;    
     private Publisher publisher;
 
     public Book() {
         this.authors = new ArrayList<>();
-    }     
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    @XmlTransient
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    @XmlElement
+    public void setTitle(String title) {
+        this.title = title;
+    }
     
     public List<Author> getAuthors() {
         return authors;

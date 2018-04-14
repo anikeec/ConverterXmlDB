@@ -5,6 +5,8 @@
  */
 package com.apu.converterxmldb.convert;
 
+import com.apu.converterxmldb.exception.ParseException;
+import com.apu.converterxmldb.exception.ConvertException;
 import com.apu.converterxmldb.entity.Library;
 
 /**

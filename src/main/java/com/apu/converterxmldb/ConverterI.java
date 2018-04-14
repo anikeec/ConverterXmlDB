@@ -5,7 +5,7 @@
  */
 package com.apu.converterxmldb;
 
-import com.apu.converterxmldb.convert.ConverterException;
+import com.apu.converterxmldb.exception.ConverterException;
 
 /**
  *

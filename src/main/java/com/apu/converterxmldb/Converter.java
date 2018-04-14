@@ -6,9 +6,9 @@
 package com.apu.converterxmldb;
 
 import com.apu.converterxmldb.convert.ConvertController;
-import com.apu.converterxmldb.convert.ConvertException;
-import com.apu.converterxmldb.convert.ConverterException;
-import com.apu.converterxmldb.convert.ParseException;
+import com.apu.converterxmldb.exception.ConvertException;
+import com.apu.converterxmldb.exception.ConverterException;
+import com.apu.converterxmldb.exception.ParseException;
 import com.apu.converterxmldb.entity.Library;
 import com.apu.converterxmldb.persist.PersistController;
 

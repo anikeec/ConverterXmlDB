@@ -5,18 +5,20 @@
  */
 package com.apu.converterxmldb;
 
+import com.apu.converterxmldb.convert.ConverterException;
+
 /**
  *
  * @author apu
  */
 public interface ConverterI {
     
-    boolean save(String libraryStr);
+    boolean save(String libraryStr) throws ConverterException;
     
-    String read();
+    String read() throws ConverterException;
     
-    boolean update(String libraryStr);
+    boolean update(String libraryStr) throws ConverterException;
     
-    boolean delete(String libraryStr);
+    boolean delete(String libraryStr) throws ConverterException;
     
 }

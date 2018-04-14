@@ -6,6 +6,9 @@
 package com.apu.converterxmldb;
 
 import com.apu.converterxmldb.convert.ConvertController;
+import com.apu.converterxmldb.convert.ConvertException;
+import com.apu.converterxmldb.convert.ConverterException;
+import com.apu.converterxmldb.convert.ParseException;
 import com.apu.converterxmldb.entity.Library;
 import com.apu.converterxmldb.persist.PersistController;
 
@@ -13,7 +16,7 @@ import com.apu.converterxmldb.persist.PersistController;
  *
  * @author apu
  */
-public class Converter implements ConverterI{
+public class Converter implements ConverterI {
     
     private final ConvertController convertController;
     private final PersistController persistController;
@@ -25,27 +28,43 @@ public class Converter implements ConverterI{
     }
 
     @Override
-    public boolean save(String libraryStr) {
-        Library library = convertController.parse(libraryStr);
-        return persistController.delete(library);
+    public boolean save(String libraryStr) throws ConverterException {
+        try {
+            Library library = convertController.parse(libraryStr);
+            return persistController.delete(library);
+        } catch (ParseException ex) {
+            throw new ConverterException(ex);
+        }
     }
 
     @Override
-    public String read() {
-        Library library = persistController.read();
-        return convertController.convert(library);
+    public String read() throws ConverterException {
+        try {
+            Library library = persistController.read();
+            return convertController.convert(library);
+        } catch (ConvertException ex) {
+            throw new ConverterException(ex);
+        }
     }
 
     @Override
-    public boolean update(String libraryStr) {
-        Library library = convertController.parse(libraryStr);
-        return persistController.update(library);
+    public boolean update(String libraryStr) throws ConverterException {
+        try {
+            Library library = convertController.parse(libraryStr);
+            return persistController.update(library);
+        } catch (ParseException ex) {
+            throw new ConverterException(ex);
+        }
     }
 
     @Override
-    public boolean delete(String libraryStr) {
-        Library library = convertController.parse(libraryStr);
-        return persistController.delete(library);
+    public boolean delete(String libraryStr) throws ConverterException {
+        try {
+            Library library = convertController.parse(libraryStr);
+            return persistController.delete(library);
+        } catch (ParseException ex) {
+            throw new ConverterException(ex);
+        }
     }
     
     

@@ -52,7 +52,10 @@ public class PublisherRepositoryJDBC implements Repository<Publisher> {
         } catch(SQLException ex) {
             throw new RepositoryException(ex);
         } finally {
-            dbPool.putConnection(con);
+            if(con != null)
+                try {
+                    con.close();
+                } catch (SQLException ex) {}
         }
         return publisher;
     }
@@ -79,7 +82,10 @@ public class PublisherRepositoryJDBC implements Repository<Publisher> {
         } catch(SQLException ex) {
             throw new RepositoryException(ex);
         } finally {
-            dbPool.putConnection(con);
+            if(con != null)
+                try {
+                    con.close();
+                } catch (SQLException ex) {}
         }
     }
 
@@ -105,7 +111,10 @@ public class PublisherRepositoryJDBC implements Repository<Publisher> {
         } catch(SQLException ex) {
             throw new RepositoryException(ex);
         } finally {
-            dbPool.putConnection(con);
+            if(con != null)
+                try {
+                    con.close();
+                } catch (SQLException ex) {}
         }
     }
 

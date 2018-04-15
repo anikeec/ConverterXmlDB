@@ -15,6 +15,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -52,7 +54,10 @@ public class AuthorRepositoryJDBC implements Repository<Author> {
         } catch(SQLException ex) {
             throw new RepositoryException(ex);
         } finally {
-            dbPool.putConnection(con);
+            if(con != null)
+                try {
+                    con.close();
+                } catch (SQLException ex) {}
         }
         return author;
     }
@@ -79,7 +84,10 @@ public class AuthorRepositoryJDBC implements Repository<Author> {
         } catch(SQLException ex) {
             throw new RepositoryException(ex);
         } finally {
-            dbPool.putConnection(con);
+            if(con != null)
+                try {
+                    con.close();
+                } catch (SQLException ex) {}
         }
     }
 
@@ -105,7 +113,10 @@ public class AuthorRepositoryJDBC implements Repository<Author> {
         } catch(SQLException ex) {
             throw new RepositoryException(ex);
         } finally {
-            dbPool.putConnection(con);
+            if(con != null)
+                try {
+                    con.close();
+                } catch (SQLException ex) {}
         }
     }
 

@@ -13,6 +13,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 /**
  *
@@ -25,10 +26,8 @@ public class AuthorRepositoryJDBC implements AuthorRepository {
     private static final Class classname = AuthorRepositoryJDBC.class;
     
     private final String INSERT_STRING = 
-        "INSERT INTO author(author_id, name) "
-            + "SELECT * FROM "
-            + "(SELECT COALESCE((SELECT (MAX(author_id)+1) FROM author auth),0), ?) "
-            + "AS tmp WHERE NOT EXISTS (SELECT * FROM author WHERE name = ?);"; 
+        "INSERT INTO author(name) SELECT * FROM (SELECT ?) AS tmp "
+            + "WHERE NOT EXISTS (SELECT * FROM author WHERE name = ?);"; 
     
     private final String FIND_BY_NAME_STRING =
         "SELECT * FROM author WHERE name = ?"; 
@@ -106,15 +105,34 @@ public class AuthorRepositoryJDBC implements AuthorRepository {
     public void saveAuthor(Author author) throws RepositoryException {
         Connection con = null;
         PreparedStatement insertStatement = null;
+        PreparedStatement selectStatement = null;
         try {        
             try {
                 con = dbPool.getConnection();
                 con.setAutoCommit(false);
-                insertStatement = con.prepareStatement(INSERT_STRING);
+                
+                insertStatement = con.prepareStatement(INSERT_STRING, 
+                                            Statement.RETURN_GENERATED_KEYS);
                 insertStatement.setString(1, author.getName());
                 insertStatement.setString(2, author.getName());
-                insertStatement.executeUpdate();
-                con.commit();
+                
+                selectStatement = con.prepareStatement(FIND_BY_NAME_STRING);                
+                selectStatement.setString(1, author.getName());
+                ResultSet res = selectStatement.executeQuery();
+                if(res.next()) {
+                    Integer key = res.getInt("author_id");
+                    author.setId(key);
+                    con.commit();
+                } else {                
+                    insertStatement.executeUpdate();
+                    con.commit();
+                    try (ResultSet keys = insertStatement.getGeneratedKeys()) {
+                        if(keys.next()) {                        
+                            Integer key = keys.getInt(1);
+                            author.setId(key);
+                        }
+                    }
+                }
             } catch (SQLException ex ) {
                 if (con != null) {
                     log.debug(classname, "Transaction is being rolled back");
@@ -122,12 +140,12 @@ public class AuthorRepositoryJDBC implements AuthorRepository {
                 }
                 throw ex;
             } finally {
-                if (insertStatement != null) {
+                if (insertStatement != null)
                     insertStatement.close();
-                }
-                if(con != null) {
+                if(selectStatement != null)
+                    selectStatement.close();
+                if(con != null)
                     con.setAutoCommit(true);
-                }
             }
         } catch(SQLException ex) {
             throw new RepositoryException(ex);

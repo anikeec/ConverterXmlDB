@@ -13,8 +13,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.sql.Statement;
 
 /**
  *
@@ -27,12 +26,10 @@ public class PublisherRepositoryJDBC implements PublisherRepository {
     private static final Class classname = PublisherRepositoryJDBC.class;
     
     private final String INSERT_STRING = 
-        "INSERT INTO publisher(publisher_id, title) "
-            + "SELECT * FROM "
-            + "(SELECT COALESCE((SELECT (MAX(publisher_id)+1) FROM publisher publ),0), ?) "
-            + "AS tmp WHERE NOT EXISTS (SELECT * FROM publisher WHERE title = ?);"; 
+        "INSERT INTO publisher(title) SELECT * FROM (SELECT ?) AS tmp "
+            + "WHERE NOT EXISTS (SELECT * FROM publisher WHERE title = ?);"; 
     
-    private final String FIND_BY_NAME_STRING =
+    private final String FIND_BY_TITLE_STRING =
         "SELECT * FROM publisher WHERE title = ?"; 
     
     private final String REMOVE_STRING =
@@ -48,7 +45,7 @@ public class PublisherRepositoryJDBC implements PublisherRepository {
             try {
                 con = dbPool.getConnection();
                 con.setAutoCommit(false);
-                findStatement = con.prepareStatement(FIND_BY_NAME_STRING);
+                findStatement = con.prepareStatement(FIND_BY_TITLE_STRING);
                 findStatement.setString(1, name);
                 ResultSet rs = findStatement.executeQuery();
                 while(rs.next()) {
@@ -108,15 +105,34 @@ public class PublisherRepositoryJDBC implements PublisherRepository {
     public void savePublisher(Publisher publisher) throws RepositoryException {
         Connection con = null;
         PreparedStatement insertStatement = null;
+        PreparedStatement selectStatement = null;
         try {        
             try {
                 con = dbPool.getConnection();
                 con.setAutoCommit(false);
-                insertStatement = con.prepareStatement(INSERT_STRING);
+                
+                insertStatement = con.prepareStatement(INSERT_STRING, 
+                                            Statement.RETURN_GENERATED_KEYS);
                 insertStatement.setString(1, publisher.getTitle());
                 insertStatement.setString(2, publisher.getTitle());
-                insertStatement.executeUpdate();
-                con.commit();
+                
+                selectStatement = con.prepareStatement(FIND_BY_TITLE_STRING);                
+                selectStatement.setString(1, publisher.getTitle());
+                ResultSet res = selectStatement.executeQuery();
+                if(res.next()) {
+                    Integer key = res.getInt("publisher_id");
+                    publisher.setId(key);
+                    con.commit();
+                } else {                
+                    insertStatement.executeUpdate();
+                    con.commit();
+                    try (ResultSet keys = insertStatement.getGeneratedKeys()) {
+                        if(keys.next()) {                        
+                            Integer key = keys.getInt(1);
+                            publisher.setId(key);
+                        }
+                    }
+                }
             } catch (SQLException ex ) {
                 if (con != null) {
                     log.debug(classname, "Transaction is being rolled back");
@@ -124,12 +140,12 @@ public class PublisherRepositoryJDBC implements PublisherRepository {
                 }
                 throw ex;
             } finally {
-                if (insertStatement != null) {
+                if (insertStatement != null)
                     insertStatement.close();
-                }
-                if(con != null) {
+                if(selectStatement != null)
+                    selectStatement.close();
+                if(con != null)
                     con.setAutoCommit(true);
-                }
             }
         } catch(SQLException ex) {
             throw new RepositoryException(ex);

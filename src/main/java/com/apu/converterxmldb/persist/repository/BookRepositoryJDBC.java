@@ -208,7 +208,7 @@ public class BookRepositoryJDBC implements Repository<Book> {
                 } else {
                     book = new Book();
                     book.setId(bookId);
-                    book.setTitle(rs.getString("name"));
+                    book.setTitle(rs.getString("book"));
                     book.setPublisher(publisher);
                     book.addAuthor(author);
                     books.add(book);

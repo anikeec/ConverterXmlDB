@@ -106,7 +106,11 @@ public class BookRepositoryJDBC implements Repository<Book> {
         } catch(SQLException ex) {
             throw new RepositoryException(ex);
         } finally {
-            dbPool.putConnection(con);
+            if(con != null)
+                try {
+                    con.close();
+                } catch (SQLException ex) {}
+
         }
         return books;
     }
@@ -127,7 +131,11 @@ public class BookRepositoryJDBC implements Repository<Book> {
         } catch(SQLException ex) {
             throw new RepositoryException(ex);
         } finally {
-            dbPool.putConnection(con);
+            if(con != null)
+                try {
+                    con.close();
+                } catch (SQLException ex) {}
+
         }
     }   
     
@@ -154,7 +162,11 @@ public class BookRepositoryJDBC implements Repository<Book> {
         } catch(SQLException ex) {
             throw new RepositoryException(ex);
         } finally {
-            dbPool.putConnection(con);
+            if(con != null)
+                try {
+                    con.close();
+                } catch (SQLException ex) {}
+
         }
     }    
     
@@ -191,7 +203,11 @@ public class BookRepositoryJDBC implements Repository<Book> {
         } catch(SQLException ex) {
             throw new RepositoryException(ex);
         } finally {
-            dbPool.putConnection(con);
+            if(con != null)
+                try {
+                    con.close();
+                } catch (SQLException ex) {}
+
         }
         return book;
     }

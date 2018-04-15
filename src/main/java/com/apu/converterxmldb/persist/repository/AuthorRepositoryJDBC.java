@@ -20,6 +20,7 @@ import java.util.List;
  *
  * @author apu
  */
+//TODO each class must have oun instance of logger
 public class AuthorRepositoryJDBC implements Repository<Author> {
     
     private static JDBCPool dbPool = JDBCPool.getInstance();
@@ -52,7 +53,11 @@ public class AuthorRepositoryJDBC implements Repository<Author> {
         } catch(SQLException ex) {
             throw new RepositoryException(ex);
         } finally {
-            dbPool.putConnection(con);
+            if(con != null)
+                try {
+                    con.close();
+                } catch (SQLException ex) {}
+
         }
         return author;
     }
@@ -79,7 +84,11 @@ public class AuthorRepositoryJDBC implements Repository<Author> {
         } catch(SQLException ex) {
             throw new RepositoryException(ex);
         } finally {
-            dbPool.putConnection(con);
+            if(con != null)
+                try {
+                    con.close();
+                } catch (SQLException ex) {}
+
         }
     }
 
@@ -105,7 +114,11 @@ public class AuthorRepositoryJDBC implements Repository<Author> {
         } catch(SQLException ex) {
             throw new RepositoryException(ex);
         } finally {
-            dbPool.putConnection(con);
+            if(con != null)
+                try {
+                    con.close();
+                } catch (SQLException ex) {}
+
         }
     }
 

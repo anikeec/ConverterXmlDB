@@ -13,12 +13,12 @@ import com.apu.converterxmldb.exception.ConverterException;
  */
 public interface ConverterI {
     
-    boolean save(String libraryStr) throws ConverterException;
+    void save(String libraryStr) throws ConverterException;
     
     String read() throws ConverterException;
     
-    boolean update(String libraryStr) throws ConverterException;
+    void update(String libraryStr) throws ConverterException;
     
-    boolean delete(String libraryStr) throws ConverterException;
+    void delete(String libraryStr) throws ConverterException;
     
 }

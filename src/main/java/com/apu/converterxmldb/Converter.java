@@ -10,6 +10,7 @@ import com.apu.converterxmldb.exception.ConvertException;
 import com.apu.converterxmldb.exception.ConverterException;
 import com.apu.converterxmldb.exception.ParseException;
 import com.apu.converterxmldb.entity.Library;
+import com.apu.converterxmldb.exception.PersistException;
 import com.apu.converterxmldb.persist.PersistController;
 
 /**
@@ -28,11 +29,11 @@ public class Converter implements ConverterI {
     }
 
     @Override
-    public boolean save(String libraryStr) throws ConverterException {
+    public void save(String libraryStr) throws ConverterException {
         try {
             Library library = convertController.parse(libraryStr);
-            return persistController.delete(library);
-        } catch (ParseException ex) {
+            persistController.delete(library);
+        } catch (ParseException | PersistException ex) {
             throw new ConverterException(ex);
         }
     }
@@ -42,27 +43,27 @@ public class Converter implements ConverterI {
         try {
             Library library = persistController.read();
             return convertController.convert(library);
-        } catch (ConvertException ex) {
+        } catch (ConvertException | PersistException ex) {
             throw new ConverterException(ex);
         }
     }
 
     @Override
-    public boolean update(String libraryStr) throws ConverterException {
+    public void update(String libraryStr) throws ConverterException {
         try {
             Library library = convertController.parse(libraryStr);
-            return persistController.update(library);
-        } catch (ParseException ex) {
+            persistController.update(library);
+        } catch (ParseException | PersistException ex) {
             throw new ConverterException(ex);
         }
     }
 
     @Override
-    public boolean delete(String libraryStr) throws ConverterException {
+    public void delete(String libraryStr) throws ConverterException {
         try {
             Library library = convertController.parse(libraryStr);
-            return persistController.delete(library);
-        } catch (ParseException ex) {
+            persistController.delete(library);
+        } catch (ParseException | PersistException ex) {
             throw new ConverterException(ex);
         }
     }

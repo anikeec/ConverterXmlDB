@@ -74,7 +74,11 @@ public class BookRepositoryJDBC implements Repository<Book> {
         "SELECT * FROM book WHERE title = ? AND publisher = ?"; 
     
     private final String REMOVE_STRING =
-        "DELETE FROM book WHERE book_id = ?";
+        "DELETE bk, ba FROM book bk "
+            + "INNER JOIN book_author ba ON bk.book_id = ba.book_id "
+            + "INNER JOIN author auth ON ba.author_id = auth.author_id "
+            + "INNER JOIN publisher publ ON bk.publisher = publ.publisher_id"
+            + "WHERE bk.book_id = ?;";
     
     private final int PARAM_BOOK_TITLE_ID = 0;
     private final int PARAM_BOOK_PUBLISHER_ID = 1;
@@ -108,9 +112,23 @@ public class BookRepositoryJDBC implements Repository<Book> {
     }
     
     @Override
-    public void delete(Book book) throws RepositoryException {   
-
-        throw new UnsupportedOperationException("Not supported yet.");
+    public void delete(Book book) throws RepositoryException {
+        Connection con = null;
+        try {        
+            try {
+                con = dbPool.getConnection();
+                con.setAutoCommit(false);
+                this.delete(book, con);
+            } finally {
+                if(con != null) {
+                    con.setAutoCommit(true);
+                }
+            }
+        } catch(SQLException ex) {
+            throw new RepositoryException(ex);
+        } finally {
+            dbPool.putConnection(con);
+        }
     }   
     
     @Override
@@ -154,7 +172,63 @@ public class BookRepositoryJDBC implements Repository<Book> {
     @Override
     public void delete(String str) throws RepositoryException {
         throw new UnsupportedOperationException("Not supported yet."); 
-    } 
+    }   
+    
+    @Override
+    public Book get(List<String> strs) throws RepositoryException {
+        Connection con = null;
+        Book book = null;
+        try {        
+            try {
+                con = dbPool.getConnection();
+                con.setAutoCommit(false);
+                book = this.get(strs, con);
+            } finally {
+                if(con != null) {
+                    con.setAutoCommit(true);
+                }
+            }
+        } catch(SQLException ex) {
+            throw new RepositoryException(ex);
+        } finally {
+            dbPool.putConnection(con);
+        }
+        return book;
+    }
+    
+    public List<Book> getAll(Connection con) throws SQLException {
+        PreparedStatement findStatement = null;
+        List<Book> books = new ArrayList<>();
+        try {        
+            findStatement = con.prepareStatement(GET_ALL_STRING);
+            ResultSet rs = findStatement.executeQuery();
+            Book book = null;
+            while(rs.next()) {
+                Author author = 
+                        new Author(rs.getInt("author_id"), 
+                                    rs.getString("author"));
+                Publisher publisher = 
+                        new Publisher(rs.getInt("publisher_id"),
+                                    rs.getString("publisher"));
+
+                int bookId = rs.getInt("book_id");
+                if((book != null) &&(book.getId() == bookId)) {
+                    book.addAuthor(author);
+                } else {
+                    book = new Book();
+                    book.setId(bookId);
+                    book.setTitle(rs.getString("book"));
+                    book.setPublisher(publisher);
+                    book.addAuthor(author);
+                    books.add(book);
+                }                   
+            }
+            return books;
+        } finally {
+            if (findStatement != null)
+                findStatement.close();
+        }
+    }
     
     public Book get(List<String> strs, Connection con) throws SQLException {
         
@@ -211,59 +285,24 @@ public class BookRepositoryJDBC implements Repository<Book> {
         }
     }
     
-    @Override
-    public Book get(List<String> strs) throws RepositoryException {
-        Connection con = null;
-        Book book = null;
-        try {        
-            try {
-                con = dbPool.getConnection();
-                con.setAutoCommit(false);
-                book = this.get(strs, con);
+    public void delete(Book book, Connection con) throws SQLException {
+        List<String> args = new ArrayList<>();
+        args.add(book.getTitle());
+        args.add(book.getPublisher().getTitle());
+        for(Author author:book.getAuthors()){
+            args.add(author.getName());                   
+        }                
+        Book bookDB = get(args, con);
+        if(bookDB != null) {
+            PreparedStatement removeStatement = null;
+            try {        
+                removeStatement = con.prepareStatement(REMOVE_STRING);
+                removeStatement.setInt(1, bookDB.getId());
+                removeStatement.executeUpdate();
             } finally {
-                if(con != null) {
-                    con.setAutoCommit(true);
-                }
+                if (removeStatement != null)
+                        removeStatement.close();
             }
-        } catch(SQLException ex) {
-            throw new RepositoryException(ex);
-        } finally {
-            dbPool.putConnection(con);
-        }
-        return book;
-    }
-    
-    public List<Book> getAll(Connection con) throws SQLException {
-        PreparedStatement findStatement = null;
-        List<Book> books = new ArrayList<>();
-        try {        
-            findStatement = con.prepareStatement(GET_ALL_STRING);
-            ResultSet rs = findStatement.executeQuery();
-            Book book = null;
-            while(rs.next()) {
-                Author author = 
-                        new Author(rs.getInt("author_id"), 
-                                    rs.getString("author"));
-                Publisher publisher = 
-                        new Publisher(rs.getInt("publisher_id"),
-                                    rs.getString("publisher"));
-
-                int bookId = rs.getInt("book_id");
-                if((book != null) &&(book.getId() == bookId)) {
-                    book.addAuthor(author);
-                } else {
-                    book = new Book();
-                    book.setId(bookId);
-                    book.setTitle(rs.getString("book"));
-                    book.setPublisher(publisher);
-                    book.addAuthor(author);
-                    books.add(book);
-                }                   
-            }
-            return books;
-        } finally {
-            if (findStatement != null)
-                findStatement.close();
         }
     }
     

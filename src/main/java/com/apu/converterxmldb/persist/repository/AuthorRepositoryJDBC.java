@@ -36,31 +36,18 @@ public class AuthorRepositoryJDBC implements Repository<Author> {
     private final String REMOVE_STRING =
         "DELETE FROM author WHERE name = ?";
 
-
     @Override
     public Author get(String name) throws RepositoryException {
         Connection con = null;
-        PreparedStatement findStatement = null;
         Author author = null;
         try {        
             try {
                 con = dbPool.getConnection();
-                con.setAutoCommit(false);
-                findStatement = con.prepareStatement(FIND_BY_NAME_STRING);
-                findStatement.setString(1, name);
-                ResultSet rs = findStatement.executeQuery();
-                while(rs.next()) {
-                    author = new Author();
-                    author.setId(rs.getInt("author_id"));
-                    author.setName(rs.getString("name"));
-                }
+                con.setAutoCommit(false);                
+                author = this.get(name, con);
             } finally {
-                if (findStatement != null) {
-                    findStatement.close();
-                }
-                if(con != null) {
+                if(con != null)
                     con.setAutoCommit(true);
-                }
             }
         } catch(SQLException ex) {
             throw new RepositoryException(ex);
@@ -68,20 +55,16 @@ public class AuthorRepositoryJDBC implements Repository<Author> {
             dbPool.putConnection(con);
         }
         return author;
-
     }
 
     @Override
     public void delete(String name) throws RepositoryException {
         Connection con = null;
-        PreparedStatement removeStatement = null;
         try {        
             try {
                 con = dbPool.getConnection();
                 con.setAutoCommit(false);
-                removeStatement = con.prepareStatement(REMOVE_STRING);
-                removeStatement.setString(1, name);
-                removeStatement.executeUpdate();
+                this.delete(name, con);
                 con.commit();
             } catch (SQLException ex ) {
                 if (con != null) {
@@ -90,8 +73,6 @@ public class AuthorRepositoryJDBC implements Repository<Author> {
                 }
                 throw ex;
             } finally {
-                if (removeStatement != null)
-                    removeStatement.close();
                 if(con != null)
                     con.setAutoCommit(true);
             }
@@ -105,35 +86,12 @@ public class AuthorRepositoryJDBC implements Repository<Author> {
     @Override
     public void save(Author author) throws RepositoryException {
         Connection con = null;
-        PreparedStatement insertStatement = null;
-        PreparedStatement selectStatement = null;
         try {        
             try {
                 con = dbPool.getConnection();
-                con.setAutoCommit(false);
-                
-                insertStatement = con.prepareStatement(INSERT_STRING, 
-                                            Statement.RETURN_GENERATED_KEYS);
-                insertStatement.setString(1, author.getName());
-                insertStatement.setString(2, author.getName());
-                
-                selectStatement = con.prepareStatement(FIND_BY_NAME_STRING);                
-                selectStatement.setString(1, author.getName());
-                ResultSet res = selectStatement.executeQuery();
-                if(res.next()) {
-                    Integer key = res.getInt("author_id");
-                    author.setId(key);
-                    con.commit();
-                } else {                
-                    insertStatement.executeUpdate();
-                    con.commit();
-                    try (ResultSet keys = insertStatement.getGeneratedKeys()) {
-                        if(keys.next()) {                        
-                            Integer key = keys.getInt(1);
-                            author.setId(key);
-                        }
-                    }
-                }
+                con.setAutoCommit(false);                
+                this.save(author, con);
+                con.commit();
             } catch (SQLException ex ) {
                 if (con != null) {
                     log.debug(classname, "Transaction is being rolled back");
@@ -141,10 +99,6 @@ public class AuthorRepositoryJDBC implements Repository<Author> {
                 }
                 throw ex;
             } finally {
-                if (insertStatement != null)
-                    insertStatement.close();
-                if(selectStatement != null)
-                    selectStatement.close();
                 if(con != null)
                     con.setAutoCommit(true);
             }
@@ -168,6 +122,62 @@ public class AuthorRepositoryJDBC implements Repository<Author> {
     @Override
     public void delete(Author obj) throws RepositoryException {
         throw new UnsupportedOperationException("Not supported yet."); 
+    }
+    
+    public Author get(String name, Connection con) throws SQLException {
+        PreparedStatement findStatement = null;
+        try {        
+            findStatement = con.prepareStatement(FIND_BY_NAME_STRING);
+            findStatement.setString(1, name);
+            ResultSet rs = findStatement.executeQuery();
+            Author author = null;
+            while(rs.next()) {
+                author = new Author();
+                author.setId(rs.getInt("author_id"));
+                author.setName(rs.getString("name"));
+            }
+            return author;
+        } finally {
+            if (findStatement != null)
+                findStatement.close();
+        }
+    }
+    
+    public void delete(String name, Connection con) throws SQLException {
+        PreparedStatement removeStatement = null;
+        try {        
+            removeStatement = con.prepareStatement(REMOVE_STRING);
+            removeStatement.setString(1, name);
+            removeStatement.executeUpdate();
+        } finally {
+            if (removeStatement != null)
+                    removeStatement.close();
+        }
+    }
+    
+    public void save(Author author, Connection con) throws SQLException {
+        PreparedStatement insertStatement = null;
+        try { 
+            Author auth = this.get(author.getName(), con);
+            if(auth != null) {
+                author.setId(auth.getId());
+            } else {            
+                insertStatement = con.prepareStatement(INSERT_STRING, 
+                                            Statement.RETURN_GENERATED_KEYS);
+                insertStatement.setString(1, author.getName());
+                insertStatement.setString(2, author.getName());
+                insertStatement.executeUpdate();
+                try (ResultSet keys = insertStatement.getGeneratedKeys()) {
+                    if(keys.next()) {                        
+                        Integer key = keys.getInt(1);
+                        author.setId(key);
+                    }
+                }
+            }
+        } finally {
+            if (insertStatement != null)
+                    insertStatement.close();
+        }
     }
     
 }

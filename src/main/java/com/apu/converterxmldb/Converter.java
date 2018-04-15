@@ -32,7 +32,7 @@ public class Converter implements ConverterI {
     public void save(String libraryStr) throws ConverterException {
         try {
             Library library = convertController.parse(libraryStr);
-            persistController.delete(library);
+            persistController.save(library);
         } catch (ParseException | PersistException ex) {
             throw new ConverterException(ex);
         }

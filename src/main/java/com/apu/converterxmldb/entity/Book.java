@@ -19,7 +19,7 @@ import javax.xml.bind.annotation.XmlTransient;
 @XmlRootElement
 public class Book {
     
-    private int id;
+    private Integer id;
     private String title;
     private List<Author> authors;    
     private Publisher publisher;
@@ -28,12 +28,12 @@ public class Book {
         this.authors = new ArrayList<>();
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
     @XmlTransient
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

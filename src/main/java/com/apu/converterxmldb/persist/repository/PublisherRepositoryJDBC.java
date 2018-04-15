@@ -179,5 +179,10 @@ public class PublisherRepositoryJDBC implements Repository<Publisher> {
                     insertStatement.close();
         }
     }
+
+    @Override
+    public Publisher get(List<String> str) throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet."); 
+    }
     
 }

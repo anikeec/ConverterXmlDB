@@ -63,5 +63,10 @@ public class LibraryRepositoryJDBC implements Repository<Library> {
     public void delete(String str) throws RepositoryException {
         throw new UnsupportedOperationException("Not supported yet."); 
     }
+
+    @Override
+    public Library get(List<String> str) throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
     
 }

@@ -179,5 +179,10 @@ public class AuthorRepositoryJDBC implements Repository<Author> {
                     insertStatement.close();
         }
     }
+
+    @Override
+    public Author get(List<String> str) throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet."); 
+    }
     
 }

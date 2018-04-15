@@ -19,6 +19,8 @@ public interface Repository<T> {
     public T get() throws RepositoryException;
 
     public T get(String str) throws RepositoryException;
+    
+    public T get(List<String> strs) throws RepositoryException;
 
     public void save(T obj) throws RepositoryException;
 

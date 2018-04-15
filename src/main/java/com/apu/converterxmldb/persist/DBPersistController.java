@@ -8,10 +8,8 @@ package com.apu.converterxmldb.persist;
 import com.apu.converterxmldb.entity.Library;
 import com.apu.converterxmldb.exception.PersistException;
 import com.apu.converterxmldb.exception.RepositoryException;
-import com.apu.converterxmldb.persist.repository.LibraryRepository;
+import com.apu.converterxmldb.persist.repository.Repository;
 import com.apu.converterxmldb.persist.repository.LibraryRepositoryJDBC;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -19,16 +17,16 @@ import java.util.logging.Logger;
  */
 public class DBPersistController implements PersistController {
     
-    private final LibraryRepository libraryRepository;
+    private final Repository<Library> libraryRepository;
 
     public DBPersistController() {
         this.libraryRepository = new LibraryRepositoryJDBC();
     }
 
     @Override
-    public boolean save(Library library) throws PersistException {
+    public void save(Library library) throws PersistException {
         try {
-            return libraryRepository.save(library);
+            libraryRepository.save(library);
         } catch (RepositoryException ex) {
             throw new PersistException(ex);
         }
@@ -37,25 +35,25 @@ public class DBPersistController implements PersistController {
     @Override
     public Library read() throws PersistException {
         try {
-            return libraryRepository.read();
+            return libraryRepository.get();
         } catch (RepositoryException ex) {
             throw new PersistException(ex);
         }
     }
 
     @Override
-    public boolean update(Library library) throws PersistException {
+    public void update(Library library) throws PersistException {
         try {
-            return libraryRepository.update(library);
+            libraryRepository.save(library);
         } catch (RepositoryException ex) {
             throw new PersistException(ex);
         }
     }
 
     @Override
-    public boolean delete(Library library) throws PersistException {
+    public void delete(Library library) throws PersistException {
         try {
-            return libraryRepository.delete(library);
+            libraryRepository.delete(library);
         } catch (RepositoryException ex) {
             throw new PersistException(ex);
         }

@@ -14,12 +14,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 
 /**
  *
  * @author apu
  */
-public class AuthorRepositoryJDBC implements AuthorRepository {
+public class AuthorRepositoryJDBC implements Repository<Author> {
     
     private static JDBCPool dbPool = JDBCPool.getInstance();
     private static final Log log = Log.getInstance();
@@ -37,7 +38,7 @@ public class AuthorRepositoryJDBC implements AuthorRepository {
 
 
     @Override
-    public Author getAuthorByName(String name) throws RepositoryException {
+    public Author get(String name) throws RepositoryException {
         Connection con = null;
         PreparedStatement findStatement = null;
         Author author = null;
@@ -71,7 +72,7 @@ public class AuthorRepositoryJDBC implements AuthorRepository {
     }
 
     @Override
-    public void deleteAuthorByName(String name) throws RepositoryException {
+    public void delete(String name) throws RepositoryException {
         Connection con = null;
         PreparedStatement removeStatement = null;
         try {        
@@ -102,7 +103,7 @@ public class AuthorRepositoryJDBC implements AuthorRepository {
     }
 
     @Override
-    public void saveAuthor(Author author) throws RepositoryException {
+    public void save(Author author) throws RepositoryException {
         Connection con = null;
         PreparedStatement insertStatement = null;
         PreparedStatement selectStatement = null;
@@ -152,6 +153,21 @@ public class AuthorRepositoryJDBC implements AuthorRepository {
         } finally {
             dbPool.putConnection(con);
         }
+    }
+
+    @Override
+    public List<Author> getAll() throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet."); 
+    }
+
+    @Override
+    public Author get() throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet."); 
+    }
+
+    @Override
+    public void delete(Author obj) throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet."); 
     }
     
 }

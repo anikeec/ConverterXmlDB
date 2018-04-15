@@ -14,12 +14,12 @@ import com.apu.converterxmldb.exception.PersistException;
  */
 public interface PersistController {
     
-    boolean save(Library library) throws PersistException;
+    void save(Library library) throws PersistException;
     
     Library read() throws PersistException;
     
-    boolean update(Library library) throws PersistException;
+    void update(Library library) throws PersistException;
     
-    boolean delete(Library library) throws PersistException;
+    void delete(Library library) throws PersistException;
     
 }

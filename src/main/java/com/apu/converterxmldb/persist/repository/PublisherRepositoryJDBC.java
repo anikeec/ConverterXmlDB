@@ -14,12 +14,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 
 /**
  *
  * @author apu
  */
-public class PublisherRepositoryJDBC implements PublisherRepository {
+public class PublisherRepositoryJDBC implements Repository<Publisher> {
     
     private static JDBCPool dbPool = JDBCPool.getInstance();
     private static final Log log = Log.getInstance();
@@ -37,7 +38,7 @@ public class PublisherRepositoryJDBC implements PublisherRepository {
 
 
     @Override
-    public Publisher getPublisherByTitle(String name) throws RepositoryException {
+    public Publisher get(String name) throws RepositoryException {
         Connection con = null;
         PreparedStatement findStatement = null;
         Publisher publisher = null;
@@ -71,7 +72,7 @@ public class PublisherRepositoryJDBC implements PublisherRepository {
     }
 
     @Override
-    public void deletePublisherByTitle(String name) throws RepositoryException {
+    public void delete(String name) throws RepositoryException {
         Connection con = null;
         PreparedStatement removeStatement = null;
         try {        
@@ -102,7 +103,7 @@ public class PublisherRepositoryJDBC implements PublisherRepository {
     }
 
     @Override
-    public void savePublisher(Publisher publisher) throws RepositoryException {
+    public void save(Publisher publisher) throws RepositoryException {
         Connection con = null;
         PreparedStatement insertStatement = null;
         PreparedStatement selectStatement = null;
@@ -152,6 +153,21 @@ public class PublisherRepositoryJDBC implements PublisherRepository {
         } finally {
             dbPool.putConnection(con);
         }
+    }
+
+    @Override
+    public List<Publisher> getAll() throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet."); 
+    }
+
+    @Override
+    public Publisher get() throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet."); 
+    }
+
+    @Override
+    public void delete(Publisher obj) throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet."); 
     }
     
 }

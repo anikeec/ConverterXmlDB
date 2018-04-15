@@ -9,54 +9,59 @@ import com.apu.converterxmldb.entity.Book;
 import com.apu.converterxmldb.persist.JDBC.JDBCPool;
 import com.apu.converterxmldb.entity.Library;
 import com.apu.converterxmldb.exception.RepositoryException;
+import java.util.List;
 
 /**
  *
  * @author apu
  */
-public class LibraryRepositoryJDBC implements LibraryRepository {
+public class LibraryRepositoryJDBC implements Repository<Library> {
     
     private static final JDBCPool dbPool = JDBCPool.getInstance();
-    private final BookRepository bookRepository;
-    private final AuthorRepository authorRepository;
-    private final PublisherRepository publisherRepository;
+    private final Repository bookRepository;
 
     public LibraryRepositoryJDBC() {
-        this.bookRepository = new BookRepositoryJDBC();
-        this.authorRepository = new AuthorRepositoryJDBC();
-        this.publisherRepository = new PublisherRepositoryJDBC();       
+        this.bookRepository = new BookRepositoryJDBC();       
     }
 
     @Override
-    public boolean save(Library library) throws RepositoryException {
+    public void save(Library library) throws RepositoryException {
         if(library == null)
             throw new NullPointerException();
         for(Book book:library.getBooks()) {
-            bookRepository.saveBook(book);
+            bookRepository.save(book);
         }
-        return true;
     }
 
     @Override
-    public Library read() throws RepositoryException {
+    public Library get() throws RepositoryException {
         Library library = new Library();
-        library.addBooks(bookRepository.getBooks());
+        library.addBooks(bookRepository.getAll());
         return library;
     }
 
     @Override
-    public boolean update(Library library) throws RepositoryException {
-        return this.save(library);
-    }
-
-    @Override
-    public boolean delete(Library library) throws RepositoryException {
+    public void delete(Library library) throws RepositoryException {
         if(library == null)
             throw new NullPointerException();
         for(Book book:library.getBooks()) {
-            bookRepository.deleteBook(book);
+            bookRepository.delete(book);
         }
-        return true;
+    }
+
+    @Override
+    public List<Library> getAll() throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet."); 
+    }
+
+    @Override
+    public Library get(String str) throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet."); 
+    }
+
+    @Override
+    public void delete(String str) throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet."); 
     }
     
 }

@@ -8,23 +8,23 @@ package com.apu.converterxmldb.persist.repository;
 import com.apu.converterxmldb.exception.RepositoryException;
 import com.apu.converterxmldb.entity.Author;
 import com.apu.converterxmldb.persist.JDBC.JDBCPool;
-import com.apu.converterxmldb.utils.Log;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  *
  * @author apu
  */
 //TODO each class must have oun instance of logger
-public class AuthorRepositoryJDBC implements Repository<Author> {
+@Slf4j
+public class AuthorRepositoryJDBC implements Repository<Author,Integer> {
     
     private static JDBCPool dbPool = JDBCPool.getInstance();
-    private static final Log log = Log.getInstance();
     private static final Class classname = AuthorRepositoryJDBC.class;
     
     private final String INSERT_STRING = 
@@ -37,7 +37,6 @@ public class AuthorRepositoryJDBC implements Repository<Author> {
     private final String REMOVE_STRING =
         "DELETE FROM author WHERE name = ?";
 
-    @Override
     public Author get(String name) throws RepositoryException {
         Connection con = null;
         Author author = null;
@@ -62,7 +61,6 @@ public class AuthorRepositoryJDBC implements Repository<Author> {
         return author;
     }
 
-    @Override
     public void delete(String name) throws RepositoryException {
         Connection con = null;
         try {        
@@ -73,7 +71,7 @@ public class AuthorRepositoryJDBC implements Repository<Author> {
                 con.commit();
             } catch (SQLException ex ) {
                 if (con != null) {
-                    log.debug(classname, "Transaction is being rolled back");
+                    log.debug("Transaction is being rolled back");
                     con.rollback();
                 }
                 throw ex;
@@ -134,7 +132,7 @@ public class AuthorRepositoryJDBC implements Repository<Author> {
 
     @Override
     public void delete(Author obj) throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet."); 
+        this.delete(obj.getName);
     }
     
     public Author get(String name, Connection con) throws SQLException {
@@ -194,8 +192,18 @@ public class AuthorRepositoryJDBC implements Repository<Author> {
     }
 
     @Override
-    public Author get(List<String> str) throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet."); 
+    public Author get(Integer id) throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void delete(Integer id) throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Author get(List<Integer> id) throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

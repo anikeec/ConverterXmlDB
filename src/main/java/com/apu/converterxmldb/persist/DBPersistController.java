@@ -17,7 +17,7 @@ import com.apu.converterxmldb.persist.repository.LibraryRepositoryJDBC;
  */
 public class DBPersistController implements PersistController {
     
-    private final Repository<Library> libraryRepository;
+    private final LibraryRepositoryJDBC libraryRepository;
 
     public DBPersistController() {
         this.libraryRepository = new LibraryRepositoryJDBC();

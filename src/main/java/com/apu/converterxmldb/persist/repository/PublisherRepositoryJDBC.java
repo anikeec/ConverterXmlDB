@@ -8,7 +8,7 @@ package com.apu.converterxmldb.persist.repository;
 import com.apu.converterxmldb.exception.RepositoryException;
 import com.apu.converterxmldb.persist.JDBC.JDBCPool;
 import com.apu.converterxmldb.entity.Publisher;
-import com.apu.converterxmldb.utils.Log;
+import lombok.extern.java.Log;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,11 +20,10 @@ import java.util.List;
  *
  * @author apu
  */
-public class PublisherRepositoryJDBC implements Repository<Publisher> {
+@Log
+public class PublisherRepositoryJDBC implements Repository<Publisher, Integer> {
     
     private static JDBCPool dbPool = JDBCPool.getInstance();
-    private static final Log log = Log.getInstance();
-    private static final Class classname = PublisherRepositoryJDBC.class;
     
     private final String INSERT_STRING = 
         "INSERT INTO publisher(title) SELECT * FROM (SELECT ?) AS tmp "
@@ -35,16 +34,18 @@ public class PublisherRepositoryJDBC implements Repository<Publisher> {
     
     private final String REMOVE_STRING =
         "DELETE FROM publisher WHERE title = ?";
-    
+
     @Override
-    public Publisher get(String name) throws RepositoryException {
+    public Publisher get(Publisher obj) throws RepositoryException {
+        if(obj == null)
+            throw new NullPointerException();
         Connection con = null;
         Publisher publisher = null;
-        try {        
+        try {
             try {
                 con = dbPool.getConnection();
                 con.setAutoCommit(false);
-                publisher = this.get(name, con);
+                publisher = this.get(obj.getTitle(), con);
             } finally {
                 if(con != null)
                     con.setAutoCommit(true);
@@ -62,36 +63,6 @@ public class PublisherRepositoryJDBC implements Repository<Publisher> {
     }
 
     @Override
-    public void delete(String name) throws RepositoryException {
-        Connection con = null;
-        try {        
-            try {
-                con = dbPool.getConnection();
-                con.setAutoCommit(false);
-                this.delete(name, con);
-                con.commit();
-            } catch (SQLException ex ) {
-                if (con != null) {
-                    log.debug(classname, "Transaction is being rolled back");
-                    con.rollback();
-                }
-                throw ex;
-            } finally {
-                if(con != null)
-                    con.setAutoCommit(true);
-            }
-        } catch(SQLException ex) {
-            throw new RepositoryException(ex);
-        } finally {
-            if(con != null)
-                try {
-                    con.close();
-                } catch (SQLException ex) {}
-
-        }
-    }
-
-    @Override
     public void save(Publisher publisher) throws RepositoryException {
         Connection con = null;
         try {        
@@ -102,7 +73,7 @@ public class PublisherRepositoryJDBC implements Repository<Publisher> {
                 con.commit();
             } catch (SQLException ex ) {
                 if (con != null) {
-                    log.debug(classname, "Transaction is being rolled back");
+                    logger.info("Transaction is being rolled back");
                     con.rollback();
                 }
                 throw ex;
@@ -122,18 +93,60 @@ public class PublisherRepositoryJDBC implements Repository<Publisher> {
     }
 
     @Override
+    public void delete(Publisher obj) throws RepositoryException {
+        if(obj == null)
+            throw new NullPointerException();
+        Connection con = null;
+        try {
+            try {
+                con = dbPool.getConnection();
+                con.setAutoCommit(false);
+                this.delete(obj.getTitle(), con);
+                con.commit();
+            } catch (SQLException ex ) {
+                if (con != null) {
+                    logger.info("Transaction is being rolled back");
+                    con.rollback();
+                }
+                throw ex;
+            } finally {
+                if(con != null)
+                    con.setAutoCommit(true);
+            }
+        } catch(SQLException ex) {
+            throw new RepositoryException(ex);
+        } finally {
+            if(con != null)
+                try {
+                    con.close();
+                } catch (SQLException ex) {}
+
+        }
+    }
+
+    @Override
+    public void delete(Integer id) throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
     public List<Publisher> getAll() throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet."); 
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public Publisher get() throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet."); 
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public void delete(Publisher obj) throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet."); 
+    public Publisher get(Integer id) throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public Publisher get(List<Integer> id) throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
     
     public Publisher get(String name, Connection con) throws SQLException {
@@ -192,9 +205,6 @@ public class PublisherRepositoryJDBC implements Repository<Publisher> {
         }
     }
 
-    @Override
-    public Publisher get(List<String> str) throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet."); 
-    }
+
     
 }

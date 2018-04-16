@@ -14,18 +14,20 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+
+import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
+
 
 /**
  *
  * @author apu
  */
 //TODO each class must have oun instance of logger
-@Slf4j
+@Log
 public class AuthorRepositoryJDBC implements Repository<Author,Integer> {
-    
+
     private static JDBCPool dbPool = JDBCPool.getInstance();
-    private static final Class classname = AuthorRepositoryJDBC.class;
     
     private final String INSERT_STRING = 
         "INSERT INTO author(name) SELECT * FROM (SELECT ?) AS tmp "
@@ -61,17 +63,18 @@ public class AuthorRepositoryJDBC implements Repository<Author,Integer> {
         return author;
     }
 
-    public void delete(String name) throws RepositoryException {
+    @Override
+    public void save(Author author) throws RepositoryException {
         Connection con = null;
         try {        
             try {
                 con = dbPool.getConnection();
-                con.setAutoCommit(false);
-                this.delete(name, con);
+                con.setAutoCommit(false);                
+                this.save(author, con);
                 con.commit();
             } catch (SQLException ex ) {
                 if (con != null) {
-                    log.debug("Transaction is being rolled back");
+                    logger.info("Transaction is being rolled back");
                     con.rollback();
                 }
                 throw ex;
@@ -90,18 +93,17 @@ public class AuthorRepositoryJDBC implements Repository<Author,Integer> {
         }
     }
 
-    @Override
-    public void save(Author author) throws RepositoryException {
+    public void delete(String name) throws RepositoryException {
         Connection con = null;
-        try {        
+        try {
             try {
                 con = dbPool.getConnection();
-                con.setAutoCommit(false);                
-                this.save(author, con);
+                con.setAutoCommit(false);
+                this.delete(name, con);
                 con.commit();
             } catch (SQLException ex ) {
                 if (con != null) {
-                    log.debug(classname, "Transaction is being rolled back");
+                    logger.info("Transaction is being rolled back");
                     con.rollback();
                 }
                 throw ex;
@@ -131,8 +133,13 @@ public class AuthorRepositoryJDBC implements Repository<Author,Integer> {
     }
 
     @Override
+    public Author get(Author obj) throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
     public void delete(Author obj) throws RepositoryException {
-        this.delete(obj.getName);
+        this.delete(obj.getName());
     }
     
     public Author get(String name, Connection con) throws SQLException {

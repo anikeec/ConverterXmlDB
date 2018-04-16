@@ -10,7 +10,8 @@ import com.apu.converterxmldb.exception.RepositoryException;
 import com.apu.converterxmldb.entity.Book;
 import com.apu.converterxmldb.entity.Publisher;
 import com.apu.converterxmldb.persist.JDBC.JDBCPool;
-import com.apu.converterxmldb.utils.Log;
+import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,10 +24,10 @@ import java.util.List;
  *
  * @author apu
  */
-public class BookRepositoryJDBC implements Repository<Book> {
+@Log
+public class BookRepositoryJDBC  implements Repository<Book,Integer> {
     
     private static JDBCPool dbPool = JDBCPool.getInstance();
-    private static final Log log = Log.getInstance();
     private static final Class classname = AuthorRepositoryJDBC.class;
     
     private final AuthorRepositoryJDBC authorRepository;
@@ -79,10 +80,7 @@ public class BookRepositoryJDBC implements Repository<Book> {
             + "INNER JOIN author auth ON ba.author_id = auth.author_id "
             + "INNER JOIN publisher publ ON bk.publisher = publ.publisher_id"
             + "WHERE bk.book_id = ?;";
-    
-    private final int PARAM_BOOK_TITLE_ID = 0;
-    private final int PARAM_BOOK_PUBLISHER_ID = 1;
-    private final int PARAM_BOOK_AUTHOR_START_ID = 2;
+
 
     /**
      *
@@ -113,6 +111,32 @@ public class BookRepositoryJDBC implements Repository<Book> {
 
         }
         return books;
+    }
+
+    @Override
+    public Book get(Book book4Search) throws RepositoryException {
+        Connection con = null;
+        Book book = null;
+        try {
+            try {
+                con = dbPool.getConnection();
+                con.setAutoCommit(false);
+                book = this.get(book4Search, con);
+            } finally {
+                if(con != null) {
+                    con.setAutoCommit(true);
+                }
+            }
+        } catch(SQLException ex) {
+            throw new RepositoryException(ex);
+        } finally {
+            if(con != null)
+                try {
+                    con.close();
+                } catch (SQLException ex) {}
+
+        }
+        return book;
     }
     
     @Override
@@ -150,7 +174,7 @@ public class BookRepositoryJDBC implements Repository<Book> {
                 con.commit();
             } catch (SQLException ex ) {
                 if (con != null) {
-                    log.debug(classname, "Transaction is being rolled back");
+                    logger.info("Transaction is being rolled back");
                     con.rollback();
                 }
                 throw ex;
@@ -168,48 +192,26 @@ public class BookRepositoryJDBC implements Repository<Book> {
                 } catch (SQLException ex) {}
 
         }
-    }    
-    
+    }
+
+    @Override
+    public void delete(Integer id) throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 
     @Override
     public Book get() throws RepositoryException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-    
+
     @Override
-    public Book get(String str) throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet."); 
+    public Book get(Integer id) throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public void delete(String str) throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet."); 
-    }   
-    
-    @Override
-    public Book get(List<String> strs) throws RepositoryException {
-        Connection con = null;
-        Book book = null;
-        try {        
-            try {
-                con = dbPool.getConnection();
-                con.setAutoCommit(false);
-                book = this.get(strs, con);
-            } finally {
-                if(con != null) {
-                    con.setAutoCommit(true);
-                }
-            }
-        } catch(SQLException ex) {
-            throw new RepositoryException(ex);
-        } finally {
-            if(con != null)
-                try {
-                    con.close();
-                } catch (SQLException ex) {}
-
-        }
-        return book;
+    public Book get(List<Integer> id) throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
     
     public List<Book> getAll(Connection con) throws SQLException {
@@ -221,11 +223,12 @@ public class BookRepositoryJDBC implements Repository<Book> {
             Book book = null;
             while(rs.next()) {
                 Author author = 
-                        new Author(rs.getInt("author_id"), 
-                                    rs.getString("author"));
+                        new Author(rs.getString("author"));
+                author.setId(rs.getInt("author_id"));
+
                 Publisher publisher = 
-                        new Publisher(rs.getInt("publisher_id"),
-                                    rs.getString("publisher"));
+                        new Publisher(rs.getString("publisher"));
+                publisher.setId(rs.getInt("publisher_id"));
 
                 int bookId = rs.getInt("book_id");
                 if((book != null) &&(book.getId() == bookId)) {
@@ -246,23 +249,24 @@ public class BookRepositoryJDBC implements Repository<Book> {
         }
     }
     
-    public Book get(List<String> strs, Connection con) throws SQLException {
+    public Book get(Book book4Search, Connection con) throws SQLException {
         
         PreparedStatement findStatement = null;
         List<Book> books = new ArrayList<>();
         try {        
             findStatement = con.prepareStatement(GET_BY_PARAMETERS_STRING);
-            findStatement.setString(1, strs.get(PARAM_BOOK_TITLE_ID));
-            findStatement.setString(2, strs.get(PARAM_BOOK_PUBLISHER_ID));
+            findStatement.setString(1, book4Search.getTitle());
+            findStatement.setString(2, book4Search.getPublisher().getTitle());
             ResultSet rs = findStatement.executeQuery();
             Book book = null;
             while(rs.next()) {
-                Author author = 
-                        new Author(rs.getInt("author_id"), 
-                                    rs.getString("author"));
-                Publisher publisher = 
-                        new Publisher(rs.getInt("publisher_id"),
-                                    rs.getString("publisher"));
+                Author author =
+                        new Author(rs.getString("author"));
+                author.setId(rs.getInt("author_id"));
+
+                Publisher publisher =
+                        new Publisher(rs.getString("publisher"));
+                publisher.setId(rs.getInt("publisher_id"));
 
                 int bookId = rs.getInt("book_id");
                 if((book != null) &&(book.getId() == bookId)) {
@@ -277,8 +281,10 @@ public class BookRepositoryJDBC implements Repository<Book> {
                 }                   
             }
             
-            List<String> authors = 
-                    strs.subList(PARAM_BOOK_AUTHOR_START_ID, strs.size());
+            List<String> authors = new ArrayList<>();
+            for(Author author:book4Search.getAuthors()) {
+                authors.add(author.getName());
+            }
             
             book = null;
             for(Book bookTmp: books) {
@@ -302,13 +308,7 @@ public class BookRepositoryJDBC implements Repository<Book> {
     }
     
     public void delete(Book book, Connection con) throws SQLException {
-        List<String> args = new ArrayList<>();
-        args.add(book.getTitle());
-        args.add(book.getPublisher().getTitle());
-        for(Author author:book.getAuthors()){
-            args.add(author.getName());                   
-        }                
-        Book bookDB = get(args, con);
+        Book bookDB = get(book, con);
         if(bookDB != null) {
             PreparedStatement removeStatement = null;
             try {        
@@ -326,13 +326,7 @@ public class BookRepositoryJDBC implements Repository<Book> {
         PreparedStatement insertStatement = null;
         try { 
             //at first check if the same is exists
-            List<String> args = new ArrayList<>();
-            args.add(book.getTitle());
-            args.add(book.getPublisher().getTitle());
-            for(Author author:book.getAuthors()){
-                args.add(author.getName());                   
-            }                
-            Book bookFromDB = get(args, con);
+            Book bookFromDB = get(book, con);
 
             if(bookFromDB == null) {
                 //persist publisher or get id

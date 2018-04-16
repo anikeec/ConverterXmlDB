@@ -9,19 +9,29 @@ import com.apu.converterxmldb.entity.Book;
 import com.apu.converterxmldb.persist.JDBC.JDBCPool;
 import com.apu.converterxmldb.entity.Library;
 import com.apu.converterxmldb.exception.RepositoryException;
+import lombok.extern.java.Log;
+
 import java.util.List;
 
 /**
  *
  * @author apu
  */
-public class LibraryRepositoryJDBC implements Repository<Library> {
+@Log
+public class LibraryRepositoryJDBC implements Repository<Library, Integer> {
     
     private static final JDBCPool dbPool = JDBCPool.getInstance();
-    private final Repository bookRepository;
+    private final BookRepositoryJDBC bookRepository;
 
     public LibraryRepositoryJDBC() {
         this.bookRepository = new BookRepositoryJDBC();       
+    }
+
+    @Override
+    public Library get() throws RepositoryException {
+        Library library = new Library();
+        library.addBooks(bookRepository.getAll());
+        return library;
     }
 
     @Override
@@ -31,13 +41,6 @@ public class LibraryRepositoryJDBC implements Repository<Library> {
         for(Book book:library.getBooks()) {
             bookRepository.save(book);
         }
-    }
-
-    @Override
-    public Library get() throws RepositoryException {
-        Library library = new Library();
-        library.addBooks(bookRepository.getAll());
-        return library;
     }
 
     @Override
@@ -55,18 +58,23 @@ public class LibraryRepositoryJDBC implements Repository<Library> {
     }
 
     @Override
-    public Library get(String str) throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet."); 
+    public Library get(Library obj) throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public void delete(String str) throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet."); 
+    public Library get(Integer id) throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public Library get(List<String> str) throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void delete(Integer id) throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public Library get(List<Integer> id) throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
     
 }

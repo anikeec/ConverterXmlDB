@@ -22,6 +22,8 @@ public interface Repository<T extends AbstractPersistable<PK>,PK extends Seriali
     
     public T get() throws RepositoryException;
 
+    public T get(T obj) throws RepositoryException;
+
     public T get(PK id) throws RepositoryException;
     
     public T get(List<PK> id) throws RepositoryException;

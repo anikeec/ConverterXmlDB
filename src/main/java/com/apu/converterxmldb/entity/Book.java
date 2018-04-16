@@ -5,6 +5,9 @@
  */
 package com.apu.converterxmldb.entity;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
@@ -16,38 +19,24 @@ import javax.xml.bind.annotation.XmlTransient;
  *
  * @author apu
  */
+@Getter
+@Setter
+@RequiredArgsConstructor
 @XmlRootElement
-public class Book {
-    
-    private Integer id;
+public class Book extends AbstractPersistable<Integer> {
+
     private String title;
-    private List<Author> authors;    
+    private List<Author> authors = new ArrayList<>();
     private Publisher publisher;
-
-    public Book() {
-        this.authors = new ArrayList<>();
-    }
-
-    public Integer getId() {
-        return id;
-    }
 
     @XmlTransient
     public void setId(Integer id) {
         this.id = id;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
     @XmlElement
     public void setTitle(String title) {
         this.title = title;
-    }
-    
-    public List<Author> getAuthors() {
-        return authors;
     }
     
     @XmlElementWrapper(name = "Authors")
@@ -61,14 +50,9 @@ public class Book {
             authors.add(author);
     }
 
-    public Publisher getPublisher() {
-        return publisher;
-    }
-
     @XmlElement
     public void setPublisher(Publisher publisher) {
         this.publisher = publisher;
     }
-    
     
 }

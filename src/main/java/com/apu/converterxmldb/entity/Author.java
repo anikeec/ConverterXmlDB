@@ -5,6 +5,8 @@
  */
 package com.apu.converterxmldb.entity;
 
+import lombok.*;
+import lombok.extern.java.Log;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -13,37 +15,22 @@ import javax.xml.bind.annotation.XmlTransient;
  *
  * @author apu
  */
+@AllArgsConstructor
+@NoArgsConstructor
 @XmlRootElement
-public class Author {
-    
-    private Integer id;
-    private String name;
+@Log
+//TODO use lombok
+//TODO extends AbstractPersistabkle for all entities that you want to store
+public class Author extends AbstractPersistable<Integer>{
 
-    public Author() {
-        this(null);
-    }  
+    @Getter private String name;
 
-    public Author(String name) {
-        this(null, name);
-    }
-
-    public Author(Integer id, String name) {
-        this.id = id;
-        this.name = name;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-    
     @XmlTransient
     public void setId(Integer id) {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
-    }
+
     @XmlElement
     public void setName(String name) {
         this.name = name;

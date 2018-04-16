@@ -8,47 +8,27 @@ package com.apu.converterxmldb.entity;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
+import lombok.*;
 
 /**
  *
  * @author apu
  */
+@AllArgsConstructor
+@NoArgsConstructor
 @XmlRootElement
-public class Publisher {
-    
-    private Integer id;
-    private String title;
+public class Publisher  extends AbstractPersistable<Integer> {
 
-    public Publisher() {
-        this(null);
-    }
-
-    public Publisher(String title) {
-        this(null, title);
-    }
-    
-    public Publisher(Integer id, String title) {
-        this.id = id;
-        this.title = title;
-    }
-
-    public Integer getId() {
-        return id;
-    }
+    @Getter private String title;
     
     @XmlTransient
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public String getTitle() {
-        return title;
     }
     
     @XmlElement
     public void setTitle(String title) {
         this.title = title;
     }
-    
     
 }

@@ -12,7 +12,8 @@
         <log4j.version>1.2.17</log4j.version> 
         <apache.common.version>3.5</apache.common.version>
         <jaxb.version>2.2.2</jaxb.version>
-        <mariadb.client.version>2.2.0</mariadb.client.version> 
+        <mariadb.client.version>2.2.0</mariadb.client.version>
+        <dbcp2.version>2.1.1</dbcp2.version>
     </properties>
     <dependencies>
         <dependency>
@@ -36,6 +37,18 @@
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
             <version>${mariadb.client.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok-maven -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.20</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId> 
+            <artifactId>commons-dbcp2</artifactId> 
+            <version>${dbcp2.version}</version> 
         </dependency>
     </dependencies>
 </project>

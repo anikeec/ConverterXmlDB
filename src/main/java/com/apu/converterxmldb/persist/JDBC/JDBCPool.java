@@ -114,6 +114,18 @@ public class JDBCPool {
                     " FOREIGN KEY (book_id) REFERENCES BOOK (book_id),\n" +
                     " FOREIGN KEY (author_id) REFERENCES AUTHOR (author_id)\n" +
                     ");");
+        con.createStatement().execute(
+                "INSERT INTO publisher(title) VALUES('Kyiv');\n" +
+                    "INSERT INTO publisher(title) VALUES('Dnipro');\n" +
+                    "INSERT INTO author(name) VALUES('Horstmann');\n" +
+                    "INSERT INTO author(name) VALUES('Geri');\n" +
+                    "INSERT INTO author(name) VALUES('Ekkel');\n" +
+                    "INSERT INTO book(title, publisher) VALUES('Java2', (SELECT publisher_id FROM publisher AS pub WHERE pub.title = 'Dnipro'));\n" +
+                    "INSERT INTO book_author(book_id, author_id) VALUES(1, (SELECT author_id FROM author AS aut WHERE aut.name = 'Horstmann'));\n" +
+                    "INSERT INTO book_author(book_id, author_id) VALUES(1, (SELECT author_id FROM author AS aut WHERE aut.name = 'Geri'));\n" +
+                    "INSERT INTO book(title, publisher) VALUES('Philosophy of Java', (SELECT publisher_id FROM publisher AS pub WHERE pub.title = 'Kyiv'));\n" +
+                    "INSERT INTO book_author(book_id, author_id) VALUES(2, (SELECT author_id FROM author AS aut WHERE aut.name = 'Ekkel'));"
+        );
         con.commit();
         con.close();
     }

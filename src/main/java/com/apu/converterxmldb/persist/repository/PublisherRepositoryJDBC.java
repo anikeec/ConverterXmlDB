@@ -26,8 +26,7 @@ public class PublisherRepositoryJDBC implements Repository<Publisher, Integer> {
     private static JDBCPool dbPool = JDBCPool.getInstance();
     
     private final String INSERT_STRING = 
-        "INSERT INTO publisher(title) SELECT * FROM (SELECT ?) AS tmp "
-            + "WHERE NOT EXISTS (SELECT * FROM publisher WHERE title = ?);"; 
+        "INSERT INTO publisher(title) VALUES(?);";
     
     private final String FIND_BY_TITLE_STRING =
         "SELECT * FROM publisher WHERE title = ?"; 
@@ -36,16 +35,16 @@ public class PublisherRepositoryJDBC implements Repository<Publisher, Integer> {
         "DELETE FROM publisher WHERE title = ?";
 
     @Override
-    public Publisher get(Publisher obj) throws RepositoryException {
+    public Integer get(Publisher obj) throws RepositoryException {
         if(obj == null)
             throw new NullPointerException();
         Connection con = null;
-        Publisher publisher = null;
+        Integer id = null;
         try {
             try {
                 con = dbPool.getConnection();
                 con.setAutoCommit(false);
-                publisher = this.get(obj.getTitle(), con);
+                id = this.get(obj, con);
             } finally {
                 if(con != null)
                     con.setAutoCommit(true);
@@ -59,17 +58,17 @@ public class PublisherRepositoryJDBC implements Repository<Publisher, Integer> {
                 } catch (SQLException ex) {}
 
         }
-        return publisher;
+        return id;
     }
 
     @Override
-    public void save(Publisher publisher) throws RepositoryException {
+    public void save(Publisher obj) throws RepositoryException {
         Connection con = null;
         try {        
             try {
                 con = dbPool.getConnection();
                 con.setAutoCommit(false);                
-                this.save(publisher, con);
+                this.save(obj, con);
                 con.commit();
             } catch (SQLException ex ) {
                 if (con != null) {
@@ -101,7 +100,7 @@ public class PublisherRepositoryJDBC implements Repository<Publisher, Integer> {
             try {
                 con = dbPool.getConnection();
                 con.setAutoCommit(false);
-                this.delete(obj.getTitle(), con);
+                this.delete(obj, con);
                 con.commit();
             } catch (SQLException ex ) {
                 if (con != null) {
@@ -149,30 +148,36 @@ public class PublisherRepositoryJDBC implements Repository<Publisher, Integer> {
         throw new UnsupportedOperationException("Not supported yet.");
     }
     
-    public Publisher get(String name, Connection con) throws SQLException {
+    public Integer get(Publisher obj, Connection con) throws SQLException {
+        if((obj == null) || (con == null))
+            throw new NullPointerException();
         PreparedStatement findStatement = null;
         try {        
             findStatement = con.prepareStatement(FIND_BY_TITLE_STRING);
-            findStatement.setString(1, name);
+            findStatement.setString(1, obj.getTitle());
             ResultSet rs = findStatement.executeQuery();
             Publisher publisher = null;
             while(rs.next()) {
                 publisher = new Publisher();
                 publisher.setId(rs.getInt("publisher_id"));
                 publisher.setTitle(rs.getString("title"));
+                obj.setId(publisher.getId());
+                return publisher.getId();
             }
-            return publisher;
+            return null;
         } finally {
             if (findStatement != null)
                 findStatement.close();
         }
     }
     
-    public void delete(String name, Connection con) throws SQLException {
+    public void delete(Publisher obj, Connection con) throws SQLException {
+        if((obj == null) || (con == null))
+                throw new NullPointerException();
         PreparedStatement removeStatement = null;
         try {        
             removeStatement = con.prepareStatement(REMOVE_STRING);
-            removeStatement.setString(1, name);
+            removeStatement.setString(1, obj.getTitle());
             removeStatement.executeUpdate();
         } finally {
             if (removeStatement != null)
@@ -181,16 +186,15 @@ public class PublisherRepositoryJDBC implements Repository<Publisher, Integer> {
     }
     
     public void save(Publisher publisher, Connection con) throws SQLException {
+        if((publisher == null) || (con == null))
+            throw new NullPointerException();
         PreparedStatement insertStatement = null;
         try { 
-            Publisher publ = this.get(publisher.getTitle(), con);
-            if(publ != null) {
-                publisher.setId(publ.getId());
-            } else {            
+            Integer id = get(publisher, con);
+            if(id == null) {
                 insertStatement = con.prepareStatement(INSERT_STRING, 
                                                 Statement.RETURN_GENERATED_KEYS);
                 insertStatement.setString(1, publisher.getTitle());
-                insertStatement.setString(2, publisher.getTitle());
                 insertStatement.executeUpdate();
                 try (ResultSet keys = insertStatement.getGeneratedKeys()) {
                     if(keys.next()) {                        

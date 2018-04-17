@@ -58,7 +58,7 @@ public class LibraryRepositoryJDBC implements Repository<Library, Integer> {
     }
 
     @Override
-    public Library get(Library obj) throws RepositoryException {
+    public Integer get(Library obj) throws RepositoryException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

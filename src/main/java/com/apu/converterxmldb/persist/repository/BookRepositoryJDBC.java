@@ -51,26 +51,27 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
             + "INNER JOIN publisher publ ON book.publisher = publ.publisher_id;";
     
     private final String GET_BY_PARAMETERS_STRING = 
-        "SELECT bk.book_id, bk.title AS 'book', " 
-            + "publ.publisher_id AS 'publisher_id', " 
-            + "publ.title AS 'publisher', " 
-            + "auth.author_id AS 'author_id', " 
-            + "auth.name AS 'author' " 
-            + "FROM book bk " 
-            + "INNER JOIN book_author ba ON bk.book_id = ba.book_id " 
+        "SELECT book.book_id, "
+            + "book.title, "
+            + "publ.publisher_id, "
+            + "publ.title, "
+            + "auth.author_id, "
+            + "auth.name "
+            + "FROM book "
+            + "INNER JOIN book_author ba ON book.book_id = ba.book_id "
             + "INNER JOIN author auth ON ba.author_id = auth.author_id " 
-            + "INNER JOIN publisher publ ON bk.publisher = publ.publisher_id " 
-            + "WHERE bk.title = ? AND publ.title = ?;";
+            + "INNER JOIN publisher publ ON book.publisher = publ.publisher_id "
+            + "WHERE book.title = ? AND publ.title = ?;";
     
     private final String INSERT_STRING = 
         "INSERT INTO book(title, publisher) VALUES(?,?);";  
     
     private final String BA_INSERT_STRING = 
-        "INSERT INTO book_author(book_id, author_id) "
-            + "SELECT * FROM (SELECT ?, ?) AS tmp "
-            + "WHERE NOT EXISTS "
-            + "(SELECT * FROM book_author WHERE book_id = ? AND author_id = ?);";
-    
+        "INSERT INTO book_author(book_id, author_id) VALUES(?,?);";
+
+    private final String BA_GET_BY_PARAMETERS_STRING =
+            "SELECT * FROM book_author WHERE book_id = ? AND author_id = ?";
+
     private final String FIND_STRING =
         "SELECT * FROM book WHERE title = ? AND publisher = ?"; 
     
@@ -114,14 +115,14 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
     }
 
     @Override
-    public Book get(Book book4Search) throws RepositoryException {
+    public Integer get(Book book4Search) throws RepositoryException {
         Connection con = null;
-        Book book = null;
+        Integer id = null;
         try {
             try {
                 con = dbPool.getConnection();
                 con.setAutoCommit(false);
-                book = this.get(book4Search, con);
+                id = this.get(book4Search, con);
             } finally {
                 if(con != null) {
                     con.setAutoCommit(true);
@@ -136,7 +137,7 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
                 } catch (SQLException ex) {}
 
         }
-        return book;
+        return id;
     }
     
     @Override
@@ -236,7 +237,7 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
                 } else {
                     book = new Book();
                     book.setId(bookId);
-                    book.setTitle(rs.getString("book"));
+                    book.setTitle(rs.getString("booktitle"));
                     book.setPublisher(publisher);
                     book.addAuthor(author);
                     books.add(book);
@@ -249,7 +250,7 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
         }
     }
     
-    public Book get(Book book4Search, Connection con) throws SQLException {
+    public Integer get(Book book4Search, Connection con) throws SQLException {
         
         PreparedStatement findStatement = null;
         List<Book> books = new ArrayList<>();
@@ -261,11 +262,11 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
             Book book = null;
             while(rs.next()) {
                 Author author =
-                        new Author(rs.getString("author"));
+                        new Author(rs.getString(6));
                 author.setId(rs.getInt("author_id"));
 
                 Publisher publisher =
-                        new Publisher(rs.getString("publisher"));
+                        new Publisher(rs.getString(3));
                 publisher.setId(rs.getInt("publisher_id"));
 
                 int bookId = rs.getInt("book_id");
@@ -274,7 +275,7 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
                 } else {
                     book = new Book();
                     book.setId(bookId);
-                    book.setTitle(rs.getString("book"));
+                    book.setTitle(rs.getString(2));
                     book.setPublisher(publisher);
                     book.addAuthor(author);
                     books.add(book);
@@ -296,11 +297,12 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
                 }
                 if(authorsTmp.containsAll(authors)) {
                     book = bookTmp;
-                    break;
+                    book4Search.setId(bookTmp.getId());
+                    return bookTmp.getId();
                 }
             }            
             
-            return book;
+            return null;
         } finally {
             if (findStatement != null)
                 findStatement.close();
@@ -308,12 +310,12 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
     }
     
     public void delete(Book book, Connection con) throws SQLException {
-        Book bookDB = get(book, con);
-        if(bookDB != null) {
+        Integer id = get(book, con);
+        if(id != null) {
             PreparedStatement removeStatement = null;
             try {        
                 removeStatement = con.prepareStatement(REMOVE_STRING);
-                removeStatement.setInt(1, bookDB.getId());
+                removeStatement.setInt(1, id);
                 removeStatement.executeUpdate();
             } finally {
                 if (removeStatement != null)
@@ -326,9 +328,9 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
         PreparedStatement insertStatement = null;
         try { 
             //at first check if the same is exists
-            Book bookFromDB = get(book, con);
+            Integer id = get(book, con);
 
-            if(bookFromDB == null) {
+            if(id == null) {
                 //persist publisher or get id
                 Publisher publisher = book.getPublisher();
                 publisherRepository.save(publisher, con);
@@ -356,7 +358,7 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
                     fillBookAuthorTable(book, authorList, con);
                 }
             } else {
-                book.setId(bookFromDB.getId());
+                book.setId(id);
             }
         } finally {
             if (insertStatement != null)
@@ -366,14 +368,20 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
 
     private void fillBookAuthorTable(Book book, List<Author> authorList, Connection con) 
                                                         throws SQLException {
+        PreparedStatement findStatement = null;
         PreparedStatement insertBAtableStatement = null;
         try {
+            findStatement = con.prepareStatement(BA_GET_BY_PARAMETERS_STRING);
+
             insertBAtableStatement = con.prepareStatement(BA_INSERT_STRING);
             for(Author author:authorList) {
+                findStatement.setInt(1, book.getId());
+                findStatement.setInt(2, author.getId());
+                ResultSet rs = findStatement.executeQuery();
+                if(rs.next())
+                    continue;
                 insertBAtableStatement.setInt(1, book.getId());
                 insertBAtableStatement.setInt(2, author.getId());
-                insertBAtableStatement.setInt(3, book.getId());
-                insertBAtableStatement.setInt(4, author.getId());
                 insertBAtableStatement.executeUpdate();
             }
         } finally {

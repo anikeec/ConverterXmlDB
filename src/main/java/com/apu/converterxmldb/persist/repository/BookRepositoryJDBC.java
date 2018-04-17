@@ -39,7 +39,7 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
     }
 
     private final int GET_QUERY_BOOK_TITLE_ID = 2;
-    private final int GET_QUERY_PUBLISHER_TITLE_ID = 3;
+    private final int GET_QUERY_PUBLISHER_TITLE_ID = 4;
     private final int GET_QUERY_AUTHOR_NAME_ID = 6;
     
     private final String GET_ALL_STRING =

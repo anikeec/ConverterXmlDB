@@ -29,11 +29,6 @@ public class Book extends AbstractPersistable<Integer> {
     private List<Author> authors = new ArrayList<>();
     private Publisher publisher;
 
-    @XmlTransient
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
     @XmlElement
     public void setTitle(String title) {
         this.title = title;

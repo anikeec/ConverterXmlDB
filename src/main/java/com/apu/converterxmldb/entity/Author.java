@@ -25,12 +25,6 @@ public class Author extends AbstractPersistable<Integer>{
 
     @Getter private String name;
 
-    @XmlTransient
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-
     @XmlElement
     public void setName(String name) {
         this.name = name;

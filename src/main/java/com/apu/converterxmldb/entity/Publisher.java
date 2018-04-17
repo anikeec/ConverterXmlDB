@@ -21,11 +21,6 @@ public class Publisher  extends AbstractPersistable<Integer> {
 
     @Getter private String title;
     
-    @XmlTransient
-    public void setId(Integer id) {
-        this.id = id;
-    }
-    
     @XmlElement
     public void setTitle(String title) {
         this.title = title;

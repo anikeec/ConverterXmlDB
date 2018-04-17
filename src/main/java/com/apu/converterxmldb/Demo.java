@@ -6,31 +6,57 @@
 package com.apu.converterxmldb;
 
 import com.apu.converterxmldb.convert.XmlConvertController;
+import com.apu.converterxmldb.entity.Author;
+import com.apu.converterxmldb.entity.Book;
+import com.apu.converterxmldb.entity.Library;
+import com.apu.converterxmldb.entity.Publisher;
 import com.apu.converterxmldb.exception.ConverterException;
+import com.apu.converterxmldb.exception.PersistException;
 import com.apu.converterxmldb.persist.DBPersistController;
-import com.apu.converterxmldb.utils.Log;
+import lombok.extern.java.Log;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.log4j.Level;
 
 /**
  *
  * @author apu
  */
+@Log
 public class Demo {
-    
-    private static final Log log = Log.getInstance();
+
     private static final Class classname = Demo.class;
     
     public static void main(String[] args) {
-        ConverterI converter = new Converter(new XmlConvertController(),
-                                            new DBPersistController());
+        XmlConvertController xmlConvertController =
+                new XmlConvertController();
+        DBPersistController persistController =
+                new DBPersistController();
+        ConverterI converter = new Converter(xmlConvertController,
+                                                persistController);
         try {
+            //work with xml
             String libraryStr = converter.read();            
             System.out.println(libraryStr);
-            
-            //here we can change libraryStr and put it to save method
-            converter.save(libraryStr);
+
+            //work with objects
+            try {
+                Library library = persistController.read();
+                Book book = new Book();
+                book.setTitle("Java7");
+                book.addAuthor(new Author("Horstmann"));
+                book.setPublisher(new Publisher("Harkiv"));
+                library.addBook(book);
+                persistController.save(library);
+            } catch (PersistException e) {
+                logger.info(e.toString());
+            }
+
+            //again work with xml
+            libraryStr = converter.read();
+            System.out.println(libraryStr);
+
         } catch (ConverterException ex) {
-            log.debug(classname,ExceptionUtils.getStackTrace(ex));
+            logger.info(ExceptionUtils.getStackTrace(ex));
         }
     }
     

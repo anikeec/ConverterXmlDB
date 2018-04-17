@@ -3,6 +3,9 @@ package com.apu.converterxmldb.entity;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
+
 /**
  * Created by vova on 15.04.18.
  */
@@ -29,6 +32,7 @@ public class AbstractPersistable<PK> {
         return id;
     }
 
+    @XmlTransient
     public void setId(PK id) {
         this.id = id;
     }

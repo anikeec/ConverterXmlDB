@@ -44,6 +44,11 @@ public class LibraryRepositoryJDBC implements Repository<Library, Integer> {
     }
 
     @Override
+    public void update(Library srcObj, Library resObj) throws RepositoryException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
     public void delete(Library library) throws RepositoryException {
         if(library == null)
             throw new NullPointerException();

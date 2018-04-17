@@ -21,9 +21,7 @@ import java.util.List;
  * @author apu
  */
 @Log
-public class PublisherRepositoryJDBC implements Repository<Publisher, Integer> {
-    
-    private static JDBCPool dbPool = JDBCPool.getInstance();
+public class PublisherRepositoryJDBC extends AbstractRepository<Publisher, Integer> {
     
     private final String INSERT_STRING = 
         "INSERT INTO publisher(title) VALUES(?);";
@@ -35,119 +33,6 @@ public class PublisherRepositoryJDBC implements Repository<Publisher, Integer> {
         "DELETE FROM publisher WHERE title = ?";
 
     @Override
-    public Integer get(Publisher obj) throws RepositoryException {
-        if(obj == null)
-            throw new NullPointerException();
-        Connection con = null;
-        Integer id = null;
-        try {
-            try {
-                con = dbPool.getConnection();
-                con.setAutoCommit(false);
-                id = this.get(obj, con);
-            } finally {
-                if(con != null)
-                    con.setAutoCommit(true);
-            }
-        } catch(SQLException ex) {
-            throw new RepositoryException(ex);
-        } finally {
-            if(con != null)
-                try {
-                    con.close();
-                } catch (SQLException ex) {}
-
-        }
-        return id;
-    }
-
-    @Override
-    public void save(Publisher obj) throws RepositoryException {
-        Connection con = null;
-        try {        
-            try {
-                con = dbPool.getConnection();
-                con.setAutoCommit(false);                
-                this.save(obj, con);
-                con.commit();
-            } catch (SQLException ex ) {
-                if (con != null) {
-                    logger.info("Transaction is being rolled back");
-                    con.rollback();
-                }
-                throw ex;
-            } finally {
-                if(con != null)
-                    con.setAutoCommit(true);
-            }
-        } catch(SQLException ex) {
-            throw new RepositoryException(ex);
-        } finally {
-            if(con != null)
-                try {
-                    con.close();
-                } catch (SQLException ex) {}
-
-        }
-    }
-
-    @Override
-    public void delete(Publisher obj) throws RepositoryException {
-        if(obj == null)
-            throw new NullPointerException();
-        Connection con = null;
-        try {
-            try {
-                con = dbPool.getConnection();
-                con.setAutoCommit(false);
-                this.delete(obj, con);
-                con.commit();
-            } catch (SQLException ex ) {
-                if (con != null) {
-                    logger.info("Transaction is being rolled back");
-                    con.rollback();
-                }
-                throw ex;
-            } finally {
-                if(con != null)
-                    con.setAutoCommit(true);
-            }
-        } catch(SQLException ex) {
-            throw new RepositoryException(ex);
-        } finally {
-            if(con != null)
-                try {
-                    con.close();
-                } catch (SQLException ex) {}
-
-        }
-    }
-
-    @Override
-    public void delete(Integer id) throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public List<Publisher> getAll() throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public Publisher get() throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public Publisher get(Integer id) throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public Publisher get(List<Integer> id) throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-    
     public Integer get(Publisher obj, Connection con) throws SQLException {
         if((obj == null) || (con == null))
             throw new NullPointerException();
@@ -170,7 +55,8 @@ public class PublisherRepositoryJDBC implements Repository<Publisher, Integer> {
                 findStatement.close();
         }
     }
-    
+
+    @Override
     public void delete(Publisher obj, Connection con) throws SQLException {
         if((obj == null) || (con == null))
                 throw new NullPointerException();
@@ -184,7 +70,8 @@ public class PublisherRepositoryJDBC implements Repository<Publisher, Integer> {
                     removeStatement.close();
         }
     }
-    
+
+    @Override
     public void save(Publisher publisher, Connection con) throws SQLException {
         if((publisher == null) || (con == null))
             throw new NullPointerException();
@@ -209,6 +96,25 @@ public class PublisherRepositoryJDBC implements Repository<Publisher, Integer> {
         }
     }
 
-
+    @Override
+    public void update(Publisher srcObj, Publisher resObj, Connection con) throws SQLException {
+        PreparedStatement findStatement = null;
+        try {
+            findStatement = con.prepareStatement(FIND_BY_TITLE_STRING,
+                    ResultSet.TYPE_FORWARD_ONLY,
+                    ResultSet.CONCUR_UPDATABLE,
+                    ResultSet.HOLD_CURSORS_OVER_COMMIT);
+            findStatement.setString(1, srcObj.getTitle());
+            ResultSet rs = findStatement.executeQuery();
+            if(rs.next()) {
+                rs.updateString("title", resObj.getTitle());
+                resObj.setId(rs.getInt("publisher_id"));
+                rs.updateRow();
+            }
+        } finally {
+            if (findStatement != null)
+                findStatement.close();
+        }
+    }
     
 }

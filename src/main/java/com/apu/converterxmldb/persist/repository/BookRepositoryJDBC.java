@@ -25,10 +25,7 @@ import java.util.List;
  * @author apu
  */
 @Log
-public class BookRepositoryJDBC  implements Repository<Book,Integer> {
-    
-    private static JDBCPool dbPool = JDBCPool.getInstance();
-    private static final Class classname = AuthorRepositoryJDBC.class;
+public class BookRepositoryJDBC  extends AbstractRepository<Book,Integer> {
     
     private final AuthorRepositoryJDBC authorRepository;
     private final PublisherRepositoryJDBC publisherRepository;
@@ -86,139 +83,7 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
             + "INNER JOIN publisher publ ON bk.publisher = publ.publisher_id"
             + "WHERE bk.book_id = ?;";
 
-
-    /**
-     *
-     * @return
-     * @throws RepositoryException
-     */
     @Override
-    public List<Book> getAll() throws RepositoryException {
-        Connection con = null;
-        List<Book> books = new ArrayList<>();
-        try {        
-            try {
-                con = dbPool.getConnection();
-                con.setAutoCommit(false);
-                books = this.getAll(con);
-            } finally {
-                if(con != null) {
-                    con.setAutoCommit(true);
-                }
-            }
-        } catch(SQLException ex) {
-            throw new RepositoryException(ex);
-        } finally {
-            if(con != null)
-                try {
-                    con.close();
-                } catch (SQLException ex) {}
-
-        }
-        return books;
-    }
-
-    @Override
-    public Integer get(Book book4Search) throws RepositoryException {
-        Connection con = null;
-        Integer id = null;
-        try {
-            try {
-                con = dbPool.getConnection();
-                con.setAutoCommit(false);
-                id = this.get(book4Search, con);
-            } finally {
-                if(con != null) {
-                    con.setAutoCommit(true);
-                }
-            }
-        } catch(SQLException ex) {
-            throw new RepositoryException(ex);
-        } finally {
-            if(con != null)
-                try {
-                    con.close();
-                } catch (SQLException ex) {}
-
-        }
-        return id;
-    }
-    
-    @Override
-    public void delete(Book book) throws RepositoryException {
-        Connection con = null;
-        try {        
-            try {
-                con = dbPool.getConnection();
-                con.setAutoCommit(false);
-                this.delete(book, con);
-            } finally {
-                if(con != null) {
-                    con.setAutoCommit(true);
-                }
-            }
-        } catch(SQLException ex) {
-            throw new RepositoryException(ex);
-        } finally {
-            if(con != null)
-                try {
-                    con.close();
-                } catch (SQLException ex) {}
-
-        }
-    }   
-    
-    @Override
-    public void save(Book book) throws RepositoryException {                
-        Connection con = null;        
-        try {        
-            try {
-                con = dbPool.getConnection();
-                con.setAutoCommit(false);                
-                this.save(book, con);                
-                con.commit();
-            } catch (SQLException ex ) {
-                if (con != null) {
-                    logger.info("Transaction is being rolled back");
-                    con.rollback();
-                }
-                throw ex;
-            } finally {
-                if(con != null) {
-                    con.setAutoCommit(true);
-                }
-            }
-        } catch(SQLException ex) {
-            throw new RepositoryException(ex);
-        } finally {
-            if(con != null)
-                try {
-                    con.close();
-                } catch (SQLException ex) {}
-
-        }
-    }
-
-    @Override
-    public void delete(Integer id) throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public Book get() throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public Book get(Integer id) throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public Book get(List<Integer> id) throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-    
     public List<Book> getAll(Connection con) throws SQLException {
         PreparedStatement findStatement = null;
         List<Book> books = new ArrayList<>();
@@ -253,7 +118,8 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
                 findStatement.close();
         }
     }
-    
+
+    @Override
     public Integer get(Book book4Search, Connection con) throws SQLException {
         
         PreparedStatement findStatement = null;
@@ -312,7 +178,8 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
                 findStatement.close();
         }
     }
-    
+
+    @Override
     public void delete(Book book, Connection con) throws SQLException {
         Integer id = get(book, con);
         if(id != null) {
@@ -327,7 +194,8 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
             }
         }
     }
-    
+
+    @Override
     public void save(Book book, Connection con) throws SQLException {
         PreparedStatement insertStatement = null;
         try { 
@@ -393,5 +261,5 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
                     insertBAtableStatement.close();
         }
     }
-    
+
 }

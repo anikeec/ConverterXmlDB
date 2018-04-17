@@ -30,6 +30,8 @@ public interface Repository<T extends AbstractPersistable<PK>,PK extends Seriali
 
     public void save(T obj) throws RepositoryException;
 
+    public void update(T srcObj, T resObj) throws RepositoryException;
+
     public void delete(PK id) throws RepositoryException;
     
     public void delete(T obj) throws RepositoryException;

@@ -25,9 +25,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 //TODO each class must have oun instance of logger
 @Log
-public class AuthorRepositoryJDBC implements Repository<Author,Integer> {
-
-    private static JDBCPool dbPool = JDBCPool.getInstance();
+public class AuthorRepositoryJDBC extends AbstractRepository<Author,Integer> {
     
     private final String INSERT_STRING = 
         "INSERT INTO author(name) VALUES(?); ";
@@ -39,119 +37,11 @@ public class AuthorRepositoryJDBC implements Repository<Author,Integer> {
         "DELETE FROM author WHERE name = ?";
 
     @Override
-    public Integer get(Author obj) throws RepositoryException {
-        if(obj == null)
-            throw new IllegalArgumentException();
-        Connection con = null;
-        Integer id = null;
-        try {        
-            try {
-                con = dbPool.getConnection();
-                con.setAutoCommit(false);
-                id = this.get(obj, con);
-            } finally {
-                if(con != null)
-                    con.setAutoCommit(true);
-            }
-        } catch(SQLException ex) {
-            throw new RepositoryException(ex);
-        } finally {
-            if(con != null)
-                try {
-                    con.close();
-                } catch (SQLException ex) {}
-
-        }
-        return id;
-    }
-
-    @Override
-    public void save(Author author) throws RepositoryException {
-        Connection con = null;
-        try {        
-            try {
-                con = dbPool.getConnection();
-                con.setAutoCommit(false);                
-                this.save(author, con);
-                con.commit();
-            } catch (SQLException ex ) {
-                if (con != null) {
-                    logger.info("Transaction is being rolled back");
-                    con.rollback();
-                }
-                throw ex;
-            } finally {
-                if(con != null)
-                    con.setAutoCommit(true);
-            }
-        } catch(SQLException ex) {
-            throw new RepositoryException(ex);
-        } finally {
-            if(con != null)
-                try {
-                    con.close();
-                } catch (SQLException ex) {}
-
-        }
-    }
-
-    @Override
-    public void delete(Author obj) throws RepositoryException {
-        if(obj == null)
-            throw new IllegalArgumentException();
-        Connection con = null;
-        try {
-            try {
-                con = dbPool.getConnection();
-                con.setAutoCommit(false);
-                this.delete(obj, con);
-                con.commit();
-            } catch (SQLException ex ) {
-                if (con != null) {
-                    logger.info("Transaction is being rolled back");
-                    con.rollback();
-                }
-                throw ex;
-            } finally {
-                if(con != null)
-                    con.setAutoCommit(true);
-            }
-        } catch(SQLException ex) {
-            throw new RepositoryException(ex);
-        } finally {
-            if(con != null)
-                try {
-                    con.close();
-                } catch (SQLException ex) {}
-
-        }
-    }
-
-    @Override
     public List<Author> getAll() throws RepositoryException {
         throw new UnsupportedOperationException("Not supported yet."); 
     }
 
     @Override
-    public Author get() throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet."); 
-    }
-
-    @Override
-    public Author get(Integer id) throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void delete(Integer id) throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public Author get(List<Integer> id) throws RepositoryException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
     public Integer get(Author obj, Connection con) throws SQLException {
         if(obj == null)
             throw new IllegalArgumentException();
@@ -174,7 +64,8 @@ public class AuthorRepositoryJDBC implements Repository<Author,Integer> {
                 findStatement.close();
         }
     }
-    
+
+    @Override
     public void delete(Author author, Connection con) throws SQLException {
         PreparedStatement removeStatement = null;
         try {        
@@ -207,6 +98,26 @@ public class AuthorRepositoryJDBC implements Repository<Author,Integer> {
         } finally {
             if (insertStatement != null)
                     insertStatement.close();
+        }
+    }
+
+    public void update(Author srcObj, Author resObj, Connection con) throws SQLException {
+        PreparedStatement findStatement = null;
+        try {
+            findStatement = con.prepareStatement(FIND_BY_NAME_STRING,
+                                                ResultSet.TYPE_FORWARD_ONLY,
+                                                ResultSet.CONCUR_UPDATABLE,
+                                                ResultSet.HOLD_CURSORS_OVER_COMMIT);
+            findStatement.setString(1, srcObj.getName());
+            ResultSet rs = findStatement.executeQuery();
+            if(rs.next()) {
+                rs.updateString("name", resObj.getName());
+                resObj.setId(rs.getInt("author_id"));
+                rs.updateRow();
+            }
+        } finally {
+            if (findStatement != null)
+                findStatement.close();
         }
     }
     

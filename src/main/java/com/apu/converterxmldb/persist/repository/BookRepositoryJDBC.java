@@ -37,14 +37,18 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
         this.authorRepository = new AuthorRepositoryJDBC();
         this.publisherRepository = new PublisherRepositoryJDBC();       
     }
+
+    private final int GET_QUERY_BOOK_TITLE_ID = 2;
+    private final int GET_QUERY_PUBLISHER_TITLE_ID = 3;
+    private final int GET_QUERY_AUTHOR_NAME_ID = 6;
     
     private final String GET_ALL_STRING =
-        "SELECT book.book_id AS 'book_id', "
-            + "book.title AS 'book', "
-            + "publ.publisher_id AS 'publisher_id', "
-            + "publ.title AS 'publisher', "
-            + "auth.author_id AS 'author_id', "
-            + "auth.name AS 'author' "
+        "SELECT book.book_id, "
+            + "book.title, "
+            + "publ.publisher_id, "
+            + "publ.title, "
+            + "auth.author_id, "
+            + "auth.name "
             + "FROM book "
             + "INNER JOIN book_author ba ON book.book_id = ba.book_id "
             + "INNER JOIN author auth ON ba.author_id = auth.author_id "
@@ -224,11 +228,11 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
             Book book = null;
             while(rs.next()) {
                 Author author = 
-                        new Author(rs.getString("author"));
+                        new Author(rs.getString(GET_QUERY_AUTHOR_NAME_ID));
                 author.setId(rs.getInt("author_id"));
 
                 Publisher publisher = 
-                        new Publisher(rs.getString("publisher"));
+                        new Publisher(rs.getString(GET_QUERY_PUBLISHER_TITLE_ID));
                 publisher.setId(rs.getInt("publisher_id"));
 
                 int bookId = rs.getInt("book_id");
@@ -237,7 +241,7 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
                 } else {
                     book = new Book();
                     book.setId(bookId);
-                    book.setTitle(rs.getString("booktitle"));
+                    book.setTitle(rs.getString(GET_QUERY_BOOK_TITLE_ID));
                     book.setPublisher(publisher);
                     book.addAuthor(author);
                     books.add(book);
@@ -262,11 +266,11 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
             Book book = null;
             while(rs.next()) {
                 Author author =
-                        new Author(rs.getString(6));
+                        new Author(rs.getString(GET_QUERY_AUTHOR_NAME_ID));
                 author.setId(rs.getInt("author_id"));
 
                 Publisher publisher =
-                        new Publisher(rs.getString(3));
+                        new Publisher(rs.getString(GET_QUERY_PUBLISHER_TITLE_ID));
                 publisher.setId(rs.getInt("publisher_id"));
 
                 int bookId = rs.getInt("book_id");
@@ -275,7 +279,7 @@ public class BookRepositoryJDBC  implements Repository<Book,Integer> {
                 } else {
                     book = new Book();
                     book.setId(bookId);
-                    book.setTitle(rs.getString(2));
+                    book.setTitle(rs.getString(GET_QUERY_BOOK_TITLE_ID));
                     book.setPublisher(publisher);
                     book.addAuthor(author);
                     books.add(book);

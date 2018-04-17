@@ -5,8 +5,10 @@
  */
 package com.apu.converterxmldb.persist.JDBC;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
@@ -38,6 +40,7 @@ public class JDBCPool {
                 try {
                     instance = new JDBCPool();
                     instance.dataSource = instance.dbConnect();
+                    instance.loadTemporaryDatabase();
                 } catch (IOException | ClassNotFoundException | SQLException ex) {
                     Logger.getLogger(JDBCPool.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -81,6 +84,38 @@ public class JDBCPool {
         
         return new PoolingDataSource(connectionPool);
     
+    }
+
+    private void loadTemporaryDatabase() throws IOException, SQLException {
+        Connection con = getConnection();
+        con.createStatement().execute(
+                    "CREATE TABLE AUTHOR(\n" +
+                    " author_id  INT NOT NULL AUTO_INCREMENT,\n" +
+                    " name VARCHAR(20) DEFAULT '',\n" +
+                    " PRIMARY KEY (author_id) \n" +
+                    ");\n" +
+                    "CREATE TABLE PUBLISHER(\n" +
+                    " publisher_id  INT NOT NULL AUTO_INCREMENT,\n" +
+                    " title VARCHAR(20) DEFAULT '',\n" +
+                    " PRIMARY KEY (publisher_id) \n" +
+                    ");\n" +
+                    "CREATE TABLE BOOK(\n" +
+                    " book_id  INT NOT NULL AUTO_INCREMENT,\n" +
+                    " title VARCHAR(30) DEFAULT '',\n" +
+                    " publisher INT, \n" +
+                    " PRIMARY KEY (book_id),\n" +
+                    " FOREIGN KEY (publisher) REFERENCES PUBLISHER (publisher_id)\n" +
+                    ");\n" +
+                    "CREATE TABLE BOOK_AUTHOR(\n" +
+                    " id  INT NOT NULL AUTO_INCREMENT,\n" +
+                    " book_id  INT NOT NULL,\n" +
+                    " author_id  INT NOT NULL,\n" +
+                    " PRIMARY KEY (id),\n" +
+                    " FOREIGN KEY (book_id) REFERENCES BOOK (book_id),\n" +
+                    " FOREIGN KEY (author_id) REFERENCES AUTHOR (author_id)\n" +
+                    ");");
+        con.commit();
+        con.close();
     }
     
 }
